@@ -54,9 +54,10 @@ local function CopyAA()
     Z.Stored_A_FreeStanding                 = (ui.get(Z.A_FreeStanding))                                    Z.Stored_A_ResetOnBunnyHop                   = (ui.get(Z.A_ResetOnBunnyHop))
     Z.Stored_A_FreeStandingIgnoreDuck       = (ui.get(Z.A_FreeStandingIgnoreDuck))                          Z.Stored_A_SlowMotion                        = (ui.get(Z.A_SlowMotion))
     Z.Stored_A_FreeStandingBodyYaw          = (ui.get(Z.A_FreeStandingBodyYaw))                             Z.Stored_A_FixLegMovement                    = (ui.get(Z.A_FixLegMovement))
-    Z.Stored_A_LowerBodyYaw                 = (ui.get(Z.A_LowerBodyYaw))                                    Z.Stored_A_InfiniteDuck                      = (ui.get(Z.A_InfiniteDuck))
-    Z.Stored_A_YawJSlider                   = (ui.get(YawJSlider))                                          Z.Stored_A_SlowMotionType                    = (ui.get(Z.A_SlowMotionType))
-    Z.Stored_A_YawSlider                    = (ui.get(YawSlider))                                           Z.Stored_A_BodyYSlider                       = (ui.get(BodyYSlider))                                         
+    Z.Stored_A_LowerBodyYawTarget           = (ui.get(Z.A_LowerBodyYawTarget))                              Z.Stored_A_InfiniteDuck                      = (ui.get(Z.A_InfiniteDuck))
+    Z.Stored_A_Twist                        = (ui.get(Z.A_Twist))                                           Z.Stored_A_SlowMotionType                    = (ui.get(Z.A_SlowMotionType))
+    Z.Stored_A_YawSlider                    = (ui.get(YawSlider))                                           Z.Stored_A_BodyYSlider                       = (ui.get(BodyYSlider))
+    Z.Stored_A_YawJSlider                   = (ui.get(YawJSlider))
 end
 
 local function PasteAA()
@@ -71,9 +72,10 @@ local function PasteAA()
     ui.set(Z.A_FreeStanding, Z.Stored_A_FreeStanding)                                                       ui.set(Z.A_ResetOnBunnyHop, Z.Stored_A_ResetOnBunnyHop)
     ui.set(Z.A_FreeStandingIgnoreDuck, Z.Stored_A_FreeStandingIgnoreDuck)                                   ui.set(Z.A_SlowMotion, Z.Stored_A_SlowMotion)
     ui.set(Z.A_FreeStandingBodyYaw, Z.Stored_A_FreeStandingBodyYaw)                                         ui.set(Z.A_FixLegMovement, Z.Stored_A_FixLegMovement)
-    ui.set(Z.A_LowerBodyYaw, Z.Stored_A_LowerBodyYaw)                                                       ui.set(Z.A_InfiniteDuck, Z.Stored_A_InfiniteDuck)
+    ui.set(Z.A_LowerBodyYawTarget, Z.Stored_A_LowerBodyYawTarget)                                           ui.set(Z.A_InfiniteDuck, Z.Stored_A_InfiniteDuck)
     ui.set(Z.A_SlowMotionType, Z.Stored_A_SlowMotionType)                                                   ui.set(YawSlider, Z.Stored_A_YawSlider)                                                              
-    ui.set(YawJSlider, Z.Stored_A_YawJSlider)                                                               if ui.get(Z.A_CustomizeTriggers) then ui.set(Z.A_Triggers, Z.Stored_A_Triggers) end
+    ui.set(YawJSlider, Z.Stored_A_YawJSlider)                                                               ui.set(Z.A_Twist ,Z.Stored_A_Twist)
+    if ui.get(Z.A_CustomizeTriggers) then ui.set(Z.A_Triggers, Z.Stored_A_Triggers) end
 end
 
 local function CopyVisuals()
