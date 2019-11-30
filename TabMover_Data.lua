@@ -2,11 +2,11 @@ local Z_mt = {} -- Thanks to Aviarita for the idea of using metatable & Thanks t
 --------------------------------------------------------------------------------------------------------------RAGE------------------------------------------------------------------------------------------------------
 Z_mt.R_Enabled                             = ui.reference("RAGE", "Aimbot", "Enabled")                             Z_mt.R_AutomaticScope                 = ui.reference("RAGE", "Aimbot", "Automatic scope")
 Z_mt.R_TargetSelection                     = ui.reference("RAGE", "Aimbot", "Target selection")                    Z_mt.R_ReduceAimStep                  = ui.reference("RAGE", "Aimbot", "Reduce aim step")
-Z_mt.R_TargetHitbox                        = ui.reference("RAGE", "Aimbot", "Target hitbox")                       Z_mt.R_PreferBodyAim                  = ui.reference("RAGE", "Other", "Prefer body aim")
+Z_mt.R_TargetHitbox                        = ui.reference("RAGE", "Aimbot", "Target hitbox")                       Z_mt.R_LogMissesDueToSpread           = ui.reference("RAGE", "Aimbot", "Log misses due to spread")
 Z_mt.R_AvoidLimbs                          = ui.reference("RAGE", "Aimbot", "Avoid limbs if moving")               Z_mt.R_MaximumFov                     = ui.reference("RAGE", "Aimbot", "Maximum FOV")
 Z_mt.R_AvoidHead                           = ui.reference("RAGE", "Aimbot", "Avoid head if jumping")               Z_mt.R_QuickStop                      = ui.reference("RAGE", "Other", "Quick stop")
 Z_mt.R_MultiPoint, zz, MpMode              = ui.reference("RAGE", "Aimbot", "Multi-point")                         Z_mt.R_QuickStopOptions               = ui.reference("RAGE", "Other", "Quick stop options")
-Z_mt.R_MultiPointScale                     = ui.reference("RAGE", "Aimbot", "Multi-point scale")                   Z_mt.R_AccuracyBoostOptions           = ui.reference("RAGE", "Other", "Accuracy boost options")
+Z_mt.R_MultiPointScale                     = ui.reference("RAGE", "Aimbot", "Multi-point scale")                   Z_mt.R_PreferBodyAim                  = ui.reference("RAGE", "Other", "Prefer body aim")
 Z_mt.R_DynamicMultiPoint                   = ui.reference("RAGE", "Aimbot", "Dynamic multi-point")                 Z_mt.R_AccuracyBoost                  = ui.reference("RAGE", "Other", "Accuracy boost")
 Z_mt.R_SafePoint                           = ui.reference("RAGE", "Aimbot", "Prefer Safe point")                   Z_mt.R_AntiAimCorrection              = ui.reference("RAGE", "Other", "Anti-Aim correction")
 Z_mt.R_LowFpsMitigations                   = ui.reference("RAGE", "Aimbot", "Low FPS mitigations")                 Z_mt.R_RemoveRecoil                   = ui.reference("RAGE", "Other", "Remove recoil")
@@ -16,13 +16,12 @@ Z_mt.R_SilentAim                           = ui.reference("RAGE", "Aimbot", "Sil
 Z_mt.R_MinHitchance                        = ui.reference("RAGE", "Aimbot", "Minimum hit chance")                  Z_mt.R_DoubleTap                      = ui.reference("RAGE", "Other", "Double tap")
 Z_mt.R_MinDamage                           = ui.reference("RAGE", "Aimbot", "Minimum Damage")                      Z_mt.R_DoubleTapMode                  = ui.reference("RAGE", "Other", "Double tap mode")
 Z_mt.R_OverrideAwp                         = ui.reference("RAGE", "Aimbot", "Override AWP")                        Z_mt.R_RemoveSpread                   = ui.reference("RAGE", "Other", "Remove spread")
-Z_mt.R_LogMissesDueToSpread                = ui.reference("RAGE", "Aimbot", "Log misses due to spread")
 
 --------------------------------------------------------------------------------------------------------------STORED RAGE-----------------------------------------------------------------------------------------------
 Z_mt.SR_Enabled                            = (nil)                                                                 Z_mt.SR_RemoveSpread                  = (nil)
 Z_mt.SR_TargetSelection                    = (nil)                                                                 Z_mt.SR_RemoveRecoil                  = (nil)
 Z_mt.SR_TargetHitbox                       = (nil)                                                                 Z_mt.SR_AccuracyBoost                 = (nil)
-Z_mt.SR_AvoidLimbs                         = (nil)                                                                 Z_mt.SR_AccuracyBoostOptions          = (nil)
+Z_mt.SR_AvoidLimbs                         = (nil)                                                                 Z_mt.SR_ReduceAimStep                 = (nil)
 Z_mt.SR_AvoidHead                          = (nil)                                                                 Z_mt.SR_QuickStop                     = (nil)
 Z_mt.SR_MultiPoint                         = (nil)                                                                 Z_mt.SR_QuickStopOptions              = (nil)
 Z_mt.SR_MultiPointScale                    = (nil)                                                                 Z_mt.SR_LowFpsMitigations             = (nil)
@@ -35,7 +34,7 @@ Z_mt.SR_SilentAim                          = (nil)                              
 Z_mt.SR_MinHitchance                       = (nil)                                                                 Z_mt.SR_DoubleTap                     = (nil)
 Z_mt.SR_MinDamage                          = (nil)                                                                 Z_mt.SR_DoubleTapMode                 = (nil)
 Z_mt.SR_OverrideAwp                        = (nil)                                                                 Z_mt.SR_MpMode                        = (nil)
-Z_mt.SR_AutomaticScope                     = (nil)                                                                 Z_mt.SR_ReduceAimStep                 = (nil)
+Z_mt.SR_AutomaticScope                     = (nil)                                                                 
 
 --------------------------------------------------------------------------------------------------------------ANTI AIM--------------------------------------------------------------------------------------------------
 Z_mt.A_Pitch                               = ui.reference("AA", "Anti-aimbot angles", "Pitch")                     Z_mt.A_Enabled                        = ui.reference("AA", "Fake lag", "Enabled")
