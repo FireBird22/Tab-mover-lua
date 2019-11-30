@@ -131,7 +131,7 @@ Z_mt.SLC_AimWhileBlind                     = (nil)                              
 Z_mt.SLC_Head1                             = (nil)                                                                 Z_mt.SLC_StandAloneRecoilCompensation = (nil)
 Z_mt.SLC_Chest1                            = (nil)
 Z_mt.SLC_Stomach1                          = (nil)
--- Shotun
+-- Shotgun
 Z_mt.SLD_Enabled1                          = (nil)                                                                 Z_mt.SLD_Enabled2                     = (nil)
 Z_mt.SLD_Speed                             = (nil)                                                                 Z_mt.SLD_MinHitchance                 = (nil)
 Z_mt.SLD_SpeedInAttack                     = (nil)                                                                 Z_mt.SLD_ReactionTime2                = (nil)
