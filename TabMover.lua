@@ -1,469 +1,304 @@
-local Z = require("TabMover_Data") -- Thanks to Aviarita for the idea of using metatable & Thanks to duk for telling me how to set/obtain color picker values properly.
+-- Credits to, w7rus, aviarita, duk
+local zz, ui_reference ,ui_get, ui_set, ui_set_visible = nil, ui.reference, ui.get, ui.set, ui.set_visible
+local RR, RA, RL, RV, RC, RM, RS = {}, {}, {}, {}, {}, {}, {} -- References
+local SR, SA, SL, SV, SC, SM, SS = {}, {}, {}, {}, {}, {}, {} -- Stored Values
+local Copied1, Copied2, Copied3, Copied4, Copied5, Copied6, isRetard = false, false, false, false, false, false, false -- Trying to prevent Script/Cfg from breaking if the user has <2 iq.
+local weapon_type = ui_reference("LEGIT", "Weapon type", "weapon type")
+local OverrideKnife, KType = ui_reference("SKINS", "Knife options", "Override knife")  
+local OverrideGloves, GType, GSkin = ui_reference("SKINS", "Glove options", "Override gloves") 
+local LegitTab = {"Pistol", "Smg", "Rifle", "Shotgun", "Machine gun", "Sniper"}
+local Weapons = {"m4a1", "m4a1_silencer", "ak47", "aug", "awp", "famas", "g3sg1", "galilar", "scar20", "sg556", "ssg08", "bizon", "mac10", "mp7", "mp9", "p90", "ump45", "mp5sd", "m249", "mag7", "negev", "nova", "sawedoff", "xm1014", "usp_silencer", "deagle", "elite", "fiveseven", "glock", "hkp2000", "p250", "tec9", "cz75a", "revolver", "knife"}
+--------------------------------------------------------------------------------------------------------------RAGE-REF-----------------------------------------------------------------------------------------------------
+RR.Enabled                                = ui_reference("RAGE", "Aimbot", "Enabled")                             RR.AutomaticScope                         = ui_reference("RAGE", "Aimbot", "Automatic scope")
+RR.TargetSelection                        = ui_reference("RAGE", "Aimbot", "Target selection")                    RR.ReduceAimStep                          = ui_reference("RAGE", "Aimbot", "Reduce aim step")
+RR.TargetHitbox                           = ui_reference("RAGE", "Aimbot", "Target hitbox")                       RR.LogMissesDueToSpread                   = ui_reference("RAGE", "Aimbot", "Log misses due to spread")
+RR.AvoidLimbs                             = ui_reference("RAGE", "Aimbot", "Avoid limbs if moving")               RR.MaximumFov                             = ui_reference("RAGE", "Aimbot", "Maximum FOV")
+RR.AvoidHead                              = ui_reference("RAGE", "Aimbot", "Avoid head if jumping")               RR.QuickStop                              = ui_reference("RAGE", "Other", "Quick stop")
+RR.MultiPoint, zz, RR.MpMode              = ui_reference("RAGE", "Aimbot", "Multi-point")                         RR.QuickStopOptions                       = ui_reference("RAGE", "Other", "Quick stop options")
+RR.MultiPointScale                        = ui_reference("RAGE", "Aimbot", "Multi-point scale")                   RR.PreferBodyAim                          = ui_reference("RAGE", "Other", "Prefer body aim")
+RR.DynamicMultiPoint                      = ui_reference("RAGE", "Aimbot", "Dynamic multi-point")                 RR.AccuracyBoost                          = ui_reference("RAGE", "Other", "Accuracy boost")
+RR.SafePoint                              = ui_reference("RAGE", "Aimbot", "Prefer Safe point")                   RR.AAimCorrection                         = ui_reference("RAGE", "Other", "Anti-Aim correction")
+RR.LowFpsMitigations                      = ui_reference("RAGE", "Aimbot", "Low FPS mitigations")                 RR.RemoveRecoil                           = ui_reference("RAGE", "Other", "Remove recoil")
+RR.AutomaticFire                          = ui_reference("RAGE", "Aimbot", "Automatic fire")                      RR.PreferBodyAimDisablers                 = ui_reference("RAGE", "Other", "Prefer body aim disablers")
+RR.AutomaticPenetration                   = ui_reference("RAGE", "Aimbot", "Automatic penetration")               RR.DelayShotOnUnduck                      = ui_reference("RAGE", "Other", "Delay shot on unduck")
+RR.SilentAim                              = ui_reference("RAGE", "Aimbot", "Silent aim")                          RR.DelayShotOnPeek                        = ui_reference("RAGE", "Other", "Delay shot on peek")
+RR.MinHitchance                           = ui_reference("RAGE", "Aimbot", "Minimum hit chance")                  RR.DoubleTap                              = ui_reference("RAGE", "Other", "Double tap")
+RR.MinDamage                              = ui_reference("RAGE", "Aimbot", "Minimum Damage")                      RR.DoubleTapMode                          = ui_reference("RAGE", "Other", "Double tap mode")
+RR.OverrideAwp                            = ui_reference("RAGE", "Aimbot", "Override AWP")                        RR.RemoveSpread                           = ui_reference("RAGE", "Other", "Remove spread")
+--------------------------------------------------------------------------------------------------------------ANTI-AIM-REF-------------------------------------------------------------------------------------------------
+RA.Pitch                                  = ui_reference("AA", "Anti-aimbot angles", "Pitch")                     RA.Enabled                                = ui_reference("AA", "Fake lag", "Enabled")
+RA.YawBase                                = ui_reference("AA", "Anti-aimbot angles", "Yaw base")                  RA.CustomizeTriggers                      = ui_reference("AA", "Fake lag", "Customize triggers")
+RA.Yaw, RA.YawSlider                      = ui_reference("AA", "Anti-aimbot angles", "Yaw")                       RA.Triggers                               = ui_reference("AA", "Fake lag", "Triggers")
+RA.YawJitter, RA.YawJSlider               = ui_reference("AA", "Anti-aimbot angles", "Yaw jitter")                RA.Amount                                 = ui_reference("AA", "Fake lag", "Amount")
+RA.BodyYaw, RA.BodyYSlider                = ui_reference("AA", "Anti-aimbot angles", "Body yaw")                  RA.Variance                               = ui_reference("AA", "Fake lag", "Variance")
+RA.FreeStandingBodyYaw                    = ui_reference("AA", "Anti-aimbot angles", "Freestanding body yaw")     RA.Limit                                  = ui_reference("AA", "Fake lag", "Limit")
+RA.LowerBodyYawTarget                     = ui_reference("AA", "Anti-aimbot angles", "Lower body yaw target")     RA.FakeLagWhileShooting                   = ui_reference("AA", "Fake lag", "Fake lag while shooting")
+RA.FakeYawLimit                           = ui_reference("AA", "Anti-aimbot angles", "Fake yaw limit")            RA.ResetOnBunnyHop                        = ui_reference("AA", "Fake lag", "Reset on bunny hop")
+RA.EdgeYaw                                = ui_reference("AA", "Anti-aimbot angles", "Edge yaw")                  RA.SlowMotion                             = ui_reference("AA", "Other", "Slow motion")
+RA.Enabled2                               = ui_reference("AA", "Anti-aimbot angles", "Enabled")                   RA.OnShotAntiAim                          = ui_reference("AA", "Other", "On shot anti-aim")
+RA.FreeStanding                           = ui_reference("AA", "Anti-aimbot angles", "Freestanding")              RA.LegMovement                            = ui_reference("AA", "Other", "Leg movement")
+RA.FreeStandingIgnoreDuck                 = ui_reference("AA", "Anti-aimbot angles", "Freestanding ignore duck")  RA.SlowMotionType                         = ui_reference("AA", "Other", "Slow motion type")
+--------------------------------------------------------------------------------------------------------------LEGIT-REF----------------------------------------------------------------------------------------------------
+RL.Enabled1                               = ui_reference("LEGIT", "Aimbot", "Enabled")                            RL.Stomach1                               = ui_reference("LEGIT", "Aimbot", "Stomach")
+RL.Speed                                  = ui_reference("LEGIT", "Aimbot", "Speed")                              RL.Enabled2                               = ui_reference("LEGIT", "Triggerbot", "Enabled")
+RL.SpeedInAttack                          = ui_reference("LEGIT", "Aimbot", "Speed (in attack)")                  RL.ReactionTime2                          = ui_reference("LEGIT", "Triggerbot", "Reaction time")
+RL.SpeedScaleFov                          = ui_reference("LEGIT", "Aimbot", "Speed scale - FOV")                  RL.BurstFire, RL.BurstS                   = ui_reference("LEGIT", "Triggerbot", "Burst fire")
+RL.MaximumLockOnTime                      = ui_reference("LEGIT", "Aimbot", "Maximum lock-on time")               RL.MinDamage                              = ui_reference("LEGIT", "Triggerbot", "Minimum damage")
+RL.ReactionTime1                          = ui_reference("LEGIT", "Aimbot", "Reaction time")                      RL.AutomaticPenetration                   = ui_reference("LEGIT", "Triggerbot", "Automatic penetration")
+RL.MaximumFov                             = ui_reference("LEGIT", "Aimbot", "Maximum FOV")                        RL.Head2                                  = ui_reference("LEGIT", "Triggerbot", "Head")
+RL.Pitch, RL.RcsYaw                       = ui_reference("LEGIT", "Aimbot", "Recoil compensation (P/Y)")          RL.Chest2                                 = ui_reference("LEGIT", "Triggerbot", "Chest")
+RL.QickStop                               = ui_reference("LEGIT", "Aimbot", "Quick stop")                         RL.Stomach2                               = ui_reference("LEGIT", "Triggerbot", "Stomach")
+RL.AimThroughSmoke                        = ui_reference("LEGIT", "Aimbot", "Aim through smoke")                  RL.MinHitchance                           = ui_reference("LEGIT", "Triggerbot", "Minimum hit chance")
+RL.AimWhileBlind                          = ui_reference("LEGIT", "Aimbot", "Aim while blind")                    RL.AccuracyBoostRange                     = ui_reference("LEGIT", "Other", "Accuracy boost range")
+RL.Head1                                  = ui_reference("LEGIT", "Aimbot", "Head")                               RL.StandAloneRecoilCompensation           = ui_reference("LEGIT", "Other", "Standalone recoil compensation")
+RL.Chest1                                 = ui_reference("LEGIT", "Aimbot", "Chest")                              RL.AccuracyBoost                          = ui_reference("LEGIT", "Other", "Accuracy boost")
+--------------------------------------------------------------------------------------------------------------VISUALS-REF--------------------------------------------------------------------------------------------------
+RV.Teammates                              = ui_reference("VISUALS", "Player ESP", "Teammates")                    RV.RemoveFlash                            = ui_reference("VISUALS", "Effects", "Remove flashbang effects")
+RV.Dormant                                = ui_reference("VISUALS", "Player ESP", "Dormant")                      RV.InstantScope                           = ui_reference("VISUALS", "Effects", "Instant scope")
+RV.BoundingBox, RC.Clr1                   = ui_reference("VISUALS", "Player ESP", "Bounding box")                 RV.BulletTracers, RC.Clr47                = ui_reference("VISUALS", "Effects", "Bullet tracers")
+RV.HealthBar                              = ui_reference("VISUALS", "Player ESP", "Health bar")                   RV.BulletImpacts, RV.Duration             = ui_reference("VISUALS", "Effects", "Bullet impacts")
+RV.Name, RC.Clr2                          = ui_reference("VISUALS", "Player ESP", "Name")                         RV.InaccuracyOverlay, RC.Clr25            = ui_reference("VISUALS", "Other ESP", "Inaccuracy overlay")
+RV.Flags                                  = ui_reference("VISUALS", "Player ESP", "Flags")                        RV.RecoilOverlay                          = ui_reference("VISUALS", "Other ESP", "Recoil overlay")
+RV.WeaponText                             = ui_reference("VISUALS", "Player ESP", "Weapon text")                  RV.Crosshair                              = ui_reference("VISUALS", "Other ESP", "Crosshair")
+RV.WeaponIcon, RC.Clr3                    = ui_reference("VISUALS", "Player ESP", "Weapon icon")                  RV.Bomb, RC.Clr26                         = ui_reference("VISUALS", "Other ESP", "Bomb")
+RV.Ammo, RC.Clr4                          = ui_reference("VISUALS", "Player ESP", "Ammo")                         RV.GrenadeTrajectory, RC.Clr27            = ui_reference("VISUALS", "Other ESP", "Grenade trajectory")
+RV.Distance                               = ui_reference("VISUALS", "Player ESP", "Distance")                     RV.GrenadeProximityWarning                = ui_reference("VISUALS", "Other ESP", "Grenade proximity warning")
+RV.Glow, RC.Clr5                          = ui_reference("VISUALS", "Player ESP", "Glow")                         RV.Spectators                             = ui_reference("VISUALS", "Other ESP", "Spectators")
+RV.HitMarker                              = ui_reference("VISUALS", "Player ESP", "Hit marker")                   RV.PenetrationReticle                     = ui_reference("VISUALS", "Other ESP", "Penetration reticle")
+RV.HitMarkerSound                         = ui_reference("VISUALS", "Player ESP", "Hit marker sound")             RV.Hostages, RC.Clr28                     = ui_reference("VISUALS", "Other ESP", "Hostages")
+RV.VisualizeSounds, RC.Clr6               = ui_reference("VISUALS", "Player ESP", "Visualize sounds")             RV.SharedEsp                              = ui_reference("VISUALS", "Other ESP", "Shared ESP")
+RV.LineOfSight, RC.Clr7                   = ui_reference("VISUALS", "Player ESP", "Line of sight")                RV.SharedEspWithOtherTeam                 = ui_reference("VISUALS", "Other ESP", "Shared ESP with other team")
+RV.Money                                  = ui_reference("VISUALS", "Player ESP", "Money")                        RV.RestrictSharedEspUpdates               = ui_reference("VISUALS", "Other ESP", "Restrict shared ESP updates")
+RV.Skeleton, RC.Clr8                      = ui_reference("VISUALS", "Player ESP", "Skeleton")                     RV.UpgradeTablet                          = ui_reference("VISUALS", "Other ESP", "Upgrade tablet")
+RV.OOFA, RC.Clr9, RV.Pos, RV.Size         = ui_reference("VISUALS", "Player ESP", "Out of FOV arrow")             RV.DangerZoneItems                        = ui_reference("VISUALS", "Other ESP", "Danger Zone items")
+RV.Player, RC.Clr10                       = ui_reference("VISUALS", "Colored models", "Player")                   RV.DroneGun, RC.Clr29                     = ui_reference("VISUALS", "Other ESP", "Drone gun")
+RV.Pbw, RC.Clr11, RV.Cham1, RC.Clr12      = ui_reference("VISUALS", "Colored models", "Player behind wall")       RV.BlackHawk, RC.Clr30                    = ui_reference("VISUALS", "Other ESP", "Blackhawk")
+RV.Teammate, RC.Clr13                     = ui_reference("VISUALS", "Colored models", "Teammate")                 RV.Drone, RC.Clr31                        = ui_reference("VISUALS", "Other ESP", "Drone")
+RV.Tbw, RC.Clr14, RV.Cham2, RC.Clr15      = ui_reference("VISUALS", "Colored models", "Teammate behind wall")     RV.RandomCase, RC.Clr32                   = ui_reference("VISUALS", "Other ESP", "Random case")
+RV.LPlayer, RC.Clr16, RV.Cham3, RC.Clr17  = ui_reference("VISUALS", "Colored models", "Local player")             RV.ToolCase, RC.Clr33                     = ui_reference("VISUALS", "Other ESP", "Tool case")
+RV.LPlayerF, RC.Clr18, RV.Cham4, RC.Clr19 = ui_reference("VISUALS", "Colored models", "Local player fake")        RV.PistolCase, RC.Clr34                   = ui_reference("VISUALS", "Other ESP", "Pistol case")
+RV.Hands, RC.Clr20, RV.Cham5, RC.Clr21    = ui_reference("VISUALS", "Colored models", "Hands")                    RV.ExplosiveCase, RC.Clr35                = ui_reference("VISUALS", "Other ESP", "Explosive case")
+RV.DisableModelOcclusion                  = ui_reference("VISUALS", "Colored models", "Disable model occlusion")  RV.HeavyWeaponCase, RC.Clr36              = ui_reference("VISUALS", "Other ESP", "Heavy weapon case")
+RV.Shadow, RC.Clr22                       = ui_reference("VISUALS", "Colored models", "Shadow")                   RV.LightWeaponCase, RC.Clr37              = ui_reference("VISUALS", "Other ESP", "Light weapon case")
+RV.Props, RC.Clr48                        = ui_reference("VISUALS", "Colored models", "Props")                    RV.DuffleBag, RC.Clr38                    = ui_reference("VISUALS", "Other ESP", "Dufflebag")
+RV.RemoveSmoke                            = ui_reference("VISUALS", "Effects", "Remove smoke grenades")           RV.Jammer, RC.Clr39                       = ui_reference("VISUALS", "Other ESP", "Jammer")
+RV.RemoveFog                              = ui_reference("VISUALS", "Effects", "Remove fog")                      RV.Ammobox, RC.Clr40                      = ui_reference("VISUALS", "Other ESP", "Ammobox")
+RV.RemoveSkybox                           = ui_reference("VISUALS", "Effects", "Remove skybox")                   RV.Armor, RC.Clr41                        = ui_reference("VISUALS", "Other ESP", "Armor")
+RV.VisualRecoilAdjustment                 = ui_reference("VISUALS", "Effects", "Visual recoil adjustment")        RV.ParachutePack, RC.Clr42                = ui_reference("VISUALS", "Other ESP", "Parachute pack")
+RV.TransparentWalls                       = ui_reference("VISUALS", "Effects", "Transparent walls")               RV.Briefcase, RC.Clr43                    = ui_reference("VISUALS", "Other ESP", "Briefcase")
+RV.TransparentProps                       = ui_reference("VISUALS", "Effects", "Transparent props")               RV.TabletUpgradeZone, RC.Clr44            = ui_reference("VISUALS", "Other ESP", "Tablet upgrade drone")
+RV.BrightnessAdjustment, RC.Clr49         = ui_reference("VISUALS", "Effects", "Brightness adjustment")           RV.TabletUpgradeDrone, RC.Clr45           = ui_reference("VISUALS", "Other ESP", "Tablet upgrade zone")
+RV.RemoveScope                            = ui_reference("VISUALS", "Effects", "Remove scope overlay")            RV.CashStack, RC.Clr46                    = ui_reference("VISUALS", "Other ESP", "Cash stack")
+RV.DisableTeammates                       = ui_reference("VISUALS", "Effects", "Disable rendering of teammates")  RV.Grenades, RC.Clr24                     = ui_reference("VISUALS", "Other ESP", "Grenades")
+RV.DisablePostProcessing                  = ui_reference("VISUALS", "Effects", "Disable post processing")         RV.DroppedWeaponAmmo                      = ui_reference("VISUALS", "Other ESP", "Dropped weapon ammo")
+RV.ForceThirdPersonAlive                  = ui_reference("VISUALS", "Effects", "Force third person (alive)")      RV.DroppedWeapon, RC.Clr23                = ui_reference("VISUALS", "Other ESP", "Dropped weapons")
+RV.ForceThirdPersonDead                   = ui_reference("VISUALS", "Effects", "Force third person (dead)")       RV.Radar                                  = ui_reference("VISUALS", "Other ESP", "Radar")
+--------------------------------------------------------------------------------------------------------------MISC-REF-----------------------------------------------------------------------------------------------------
+RM.StandaloneQuickStop                    = ui_reference("MISC", "Movement", "Standalone quick stop")             RM.RevealCompetitiveRanks                 = ui_reference("MISC", "Miscellaneous", "Reveal competitive ranks")
+RM.BunnyHop                               = ui_reference("MISC", "Movement", "Bunny hop")                         RM.AutoAcceptMatchmaking                  = ui_reference("MISC", "Miscellaneous", "Auto-accept matchmaking")
+RM.AirStrafe                              = ui_reference("MISC", "Movement", "Air strafe")                        RM.AutomaticGrenadeRelease                = ui_reference("MISC", "Miscellaneous", "Automatic grenade release")
+RM.AirStrafeDirection                     = ui_reference("MISC", "Movement", "Air strafe direction")              RM.PingSpike, zz, RM.PingVal              = ui_reference("MISC", "Miscellaneous", "Ping spike")
+RM.AirStrafeSmoothing                     = ui_reference("MISC", "Movement", "Air strafe smoothing")              RM.OverrideFov                            = ui_reference("MISC", "Miscellaneous", "Override FOV")
+RM.Zhop, zz, RM.Zy, RM.Zx                 = ui_reference("MISC", "Movement", "Z-Hop")                             RM.PersistentKillFeed                     = ui_reference("MISC", "Miscellaneous", "Persistent kill feed")
+RM.PreSpeed                               = ui_reference("MISC", "Movement", "Pre-speed")                         RM.ZeusBot                                = ui_reference("MISC", "Miscellaneous", "Zeusbot")
+RM.AirDuck                                = ui_reference("MISC", "Movement", "Air duck")                          RM.LogPurchases                           = ui_reference("MISC", "Miscellaneous", "Log weapon purchases")
+RM.InfiniteDuck                           = ui_reference("MISC", "Movement", "Infinite duck")                     RM.RevealOverwatchPlayers                 = ui_reference("MISC", "Miscellaneous", "Reveal Overwatch players")
+RM.FastWalk                               = ui_reference("MISC", "Movement", "Fast walk")                         RM.KnifeBot, RM.KnifeMode                 = ui_reference("MISC", "Miscellaneous", "Knifebot")
+RM.BlockBot                               = ui_reference("MISC", "Movement", "Blockbot")                          RM.AutomaticWeapons, RM.ADelay            = ui_reference("MISC", "Miscellaneous", "Automatic weapons")
+RM.EasyStrafe                             = ui_reference("MISC", "Movement", "Easy strafe")                       RM.OverrideZoomFov                        = ui_reference("MISC", "Miscellaneous", "Override Zoom FOV")
+RM.JumpAtEdge                             = ui_reference("MISC", "Movement", "Jump at edge")                      RM.HideFromObs                            = ui_reference("MISC", "Settings", "Hide from OBS")
+RM.ClanTagSpammer                         = ui_reference("MISC", "Miscellaneous", "Clan tag spammer")             RM.AntiUntrusted                          = ui_reference("MISC", "Settings", "Anti-untrusted")
+RM.LogDamageDealt                         = ui_reference("MISC", "Miscellaneous", "Log damage dealt")             RM.LowFpsWarning                          = ui_reference("MISC", "Settings", "Low FPS warning")
+--------------------------------------------------------------------------------------------------------------SKINS-REF----------------------------------------------------------------------------------------------------
+RS.Quality                                = ui_reference("SKINS", "Weapon skin", "Quality")                       RS.Seed                                   = ui_reference("SKINS", "Weapon skin", "Seed")
+RS.Enabled                                = ui_reference("SKINS", "Weapon skin", "Enabled")                       RS.FilterByWeapon                         = ui_reference("SKINS", "Weapon skin", "Filter by weapon")
+RS.StatTrak                               = ui_reference("SKINS", "Weapon skin", "StatTrak")                      RS.List                                   = ui_reference("Skins", "Weapon Skin", "Skin")
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local Enabled     = ui.new_checkbox   ("LUA", "A", "Enable Tab Mover")
-local MultiSelect = ui.new_multiselect("LUA", "A", "Selected Tabs", "Rage", "Anti-Aim", "Legit", "Visuals", "Misc")
-local weapon_type = ui.reference("LEGIT", "Weapon type", "weapon type")
-                
-local function CopyRage()
-    Z.SR_Enabled                            = ui.get(Z.R_Enabled)                                             Z.SR_RemoveSpread                      = ui.get(Z.R_RemoveSpread)
-    Z.SR_TargetSelection                    = ui.get(Z.R_TargetSelection)                                     Z.SR_RemoveRecoil                      = ui.get(Z.R_RemoveRecoil)
-    Z.SR_TargetHitbox                       = ui.get(Z.R_TargetHitbox)                                        Z.SR_AccuracyBoost                     = ui.get(Z.R_AccuracyBoost)
-    Z.SR_AvoidLimbs                         = ui.get(Z.R_AvoidLimbs)                                          Z.SR_ReduceAimStep                     = ui.get(Z.R_ReduceAimStep)
-    Z.SR_AvoidHead                          = ui.get(Z.R_AvoidHead)                                           Z.SR_QuickStop                         = ui.get(Z.R_QuickStop)
-    Z.SR_MultiPoint                         = ui.get(Z.R_MultiPoint)                                          Z.SR_QuickStopOptions                  = ui.get(Z.R_QuickStopOptions)
-    Z.SR_MultiPointScale                    = ui.get(Z.R_MultiPointScale)                                     Z.SR_LowFpsMitigations                 = ui.get(Z.R_LowFpsMitigations)
-    Z.SR_DynamicMultiPoint                  = ui.get(Z.R_DynamicMultiPoint)                                   Z.SR_LogMissesDueToSpread              = ui.get(Z.R_LogMissesDueToSpread)
-    Z.SR_SafePoint                          = ui.get(Z.R_SafePoint)                                           Z.SR_AntiAimCorrection                 = ui.get(Z.R_AntiAimCorrection)
-    Z.SR_PreferBodyAim                      = ui.get(Z.R_PreferBodyAim)                                       Z.SR_MaximumFov                        = ui.get(Z.R_MaximumFov)
-    Z.SR_AutomaticFire                      = ui.get(Z.R_AutomaticFire)                                       Z.SR_PreferBodyAimDisablers            = ui.get(Z.R_PreferBodyAimDisablers)
-    Z.SR_AutomaticPenetration               = ui.get(Z.R_AutomaticPenetration)                                Z.SR_DelayShotOnUnduck                 = ui.get(Z.R_DelayShotOnUnduck)
-    Z.SR_SilentAim                          = ui.get(Z.R_SilentAim)                                           Z.SR_DelayShotOnPeek                   = ui.get(Z.R_DelayShotOnPeek)
-    Z.SR_MinHitchance                       = ui.get(Z.R_MinHitchance)                                        Z.SR_DoubleTap                         = ui.get(Z.R_DoubleTap)
-    Z.SR_MinDamage                          = ui.get(Z.R_MinDamage)                                           Z.SR_DoubleTapMode                     = ui.get(Z.R_DoubleTapMode)
-    Z.SR_OverrideAwp                        = ui.get(Z.R_OverrideAwp)                                         Z.SR_MpMode                            = ui.get(MpMode)
-    Z.SR_AutomaticScope                     = ui.get(Z.R_AutomaticScope)                                      
+local MultiSelect = ui.new_multiselect("LUA", "A", "Selected Tabs", "Rage", "Anti-Aim", "Legit", "Visuals", "Misc", "Skins")
+
+local function Retard(huh, tabName)
+    if huh ~= true then client.color_log(255, 30, 0, "Copy the " .. tabName .. " tab, before trying to paste it. You dumb fuck.") isRetard = true 
+        else isRetard = false
+    end
 end
 
-local function PasteRage()
-    ui.set(Z.R_Enabled, Z.SR_Enabled)                                                                         ui.set(Z.R_RemoveSpread, Z.SR_RemoveSpread)
-    ui.set(Z.R_TargetSelection, Z.SR_TargetSelection)                                                         ui.set(Z.R_RemoveRecoil, Z.SR_RemoveRecoil)
-    ui.set(Z.R_TargetHitbox, Z.SR_TargetHitbox)                                                               ui.set(Z.R_AccuracyBoost, Z.SR_AccuracyBoost)
-    ui.set(Z.R_AvoidLimbs, Z.SR_AvoidLimbs)                                                                   ui.set(Z.R_MaximumFov, Z.SR_MaximumFov)
-    ui.set(Z.R_AvoidHead, Z.SR_AvoidHead)                                                                     ui.set(Z.R_QuickStop, Z.SR_QuickStop)
-    ui.set(Z.R_MultiPoint, Z.SR_MultiPoint)                                                                   ui.set(Z.R_QuickStopOptions, Z.SR_QuickStopOptions)
-    ui.set(Z.R_MultiPointScale, Z.SR_MultiPointScale)                                                         ui.set(Z.R_LogMissesDueToSpread, Z.SR_LogMissesDueToSpread)
-    ui.set(Z.R_DynamicMultiPoint, Z.SR_DynamicMultiPoint)                                                     ui.set(Z.R_LowFpsMitigations, Z.SR_LowFpsMitigations)
-    ui.set(Z.R_SafePoint, Z.SR_SafePoint)                                                                     ui.set(Z.R_AntiAimCorrection, Z.SR_AntiAimCorrection)
-    ui.set(Z.R_PreferBodyAim, Z.SR_PreferBodyAim)                                                             ui.set(Z.R_ReduceAimStep, Z.SR_ReduceAimStep)
-    ui.set(Z.R_AutomaticFire, Z.SR_AutomaticFire)                                                             ui.set(Z.R_PreferBodyAimDisablers, Z.SR_PreferBodyAimDisablers)
-    ui.set(Z.R_AutomaticPenetration, Z.SR_AutomaticPenetration)                                               ui.set(Z.R_DelayShotOnUnduck, Z.SR_DelayShotOnUnduck)
-    ui.set(Z.R_SilentAim, Z.SR_SilentAim)                                                                     ui.set(Z.R_DelayShotOnPeek, Z.SR_DelayShotOnPeek)
-    ui.set(Z.R_MinHitchance, Z.SR_MinHitchance)                                                               ui.set(Z.R_DoubleTap, Z.SR_DoubleTap)
-    ui.set(Z.R_MinDamage, Z.SR_MinDamage)                                                                     ui.set(Z.R_DoubleTapMode, Z.SR_DoubleTapMode)
-    ui.set(Z.R_OverrideAwp, Z.SR_OverrideAwp)                                                                 ui.set(MpMode, Z.SR_MpMode)
-    ui.set(Z.R_AutomaticScope, Z.SR_AutomaticScope)                                                           
+local function Done(type, tabName)
+local theThingy = nil    
+    if type == 1 then theThingy = "Copied " 
+    elseif type == 2 then theThingy = "Pasted " 
+    end
+    client.color_log(4, 225, 0, theThingy .. tabName .. " Tab.")
+end
+
+local function GiveWeapon(weapon)
+    client.exec("give weapon_"..weapon)
+end
+
+local function CopyRage()
+    for k, v in pairs(RR) do
+        SR[k] = ui_get(v)
+    end
+    Done(1, "Rage")
 end
 
 local function CopyAA()
-    Z.SA_Pitch                              = ui.get(Z.A_Pitch)                                               Z.SA_Enabled                           = ui.get(Z.A_Enabled)
-    Z.SA_YawBase                            = ui.get(Z.A_YawBase)                                             Z.SA_CustomizeTriggers                 = ui.get(Z.A_CustomizeTriggers)
-    Z.SA_Yaw                                = ui.get(Z.A_Yaw)                                                 Z.SA_Triggers                          = ui.get(Z.A_Triggers)
-    Z.SA_YawJitter                          = ui.get(Z.A_YawJitter)                                           Z.SA_Amount                            = ui.get(Z.A_Amount)
-    Z.SA_BodyYaw                            = ui.get(Z.A_BodyYaw)                                             Z.SA_Variance                          = ui.get(Z.A_Variance)
-    Z.SA_FreeStandingBodyYaw                = ui.get(Z.A_FreeStandingBodyYaw)                                 Z.SA_Limit                             = ui.get(Z.A_Limit)
-    Z.SA_LowerBodyYawTarget                 = ui.get(Z.A_LowerBodyYawTarget)                                  Z.SA_FakeLagWhileShooting              = ui.get(Z.A_FakeLagWhileShooting)
-    Z.SA_FakeYawLimit                       = ui.get(Z.A_FakeYawLimit)                                        Z.SA_ResetOnBunnyHop                   = ui.get(Z.A_ResetOnBunnyHop)
-    Z.SA_EdgeYaw                            = ui.get(Z.A_EdgeYaw)                                             Z.SA_SlowMotion                        = ui.get(Z.A_SlowMotion)
-    Z.SA_SlowMotionType                     = ui.get(Z.A_SlowMotionType)                                      Z.SA_BodyYSlider                       = ui.get(BodyYSlider)
-    Z.SA_FreeStanding                       = ui.get(Z.A_FreeStanding)                                        Z.SA_LegMovement                       = ui.get(Z.A_LegMovement)
-    Z.SA_FreeStandingIgnoreDuck             = ui.get(Z.A_FreeStandingIgnoreDuck)                              Z.SA_Enabled2                          = ui.get(Z.A_Enabled2)
-    Z.SA_OnShotAntiAim                      = ui.get(Z.A_OnShotAntiAim)                                       Z.SA_YawSlider                         = ui.get(YawSlider)
-    Z.SA_YawJSlider                         = ui.get(YawJSlider)
-end
-
-local function PasteAA()
-    ui.set(Z.A_Pitch, Z.SA_Pitch)                                                                             ui.set(Z.A_Enabled, Z.SA_Enabled)
-    ui.set(Z.A_YawBase, Z.SA_YawBase)                                                                         ui.set(Z.A_CustomizeTriggers, Z.SA_CustomizeTriggers)
-    ui.set(Z.A_Yaw, Z.SA_Yaw)                                                                                 if ui.get(Z.A_CustomizeTriggers) then ui.set(Z.A_Triggers, Z.SA_Triggers) end
-    ui.set(Z.A_YawJitter, Z.SA_YawJitter)                                                                     ui.set(Z.A_Amount, Z.SA_Amount)
-    ui.set(Z.A_BodyYaw, Z.SA_BodyYaw)                                                                         ui.set(Z.A_Variance, Z.SA_Variance)
-    ui.set(Z.A_FreeStandingBodyYaw, Z.SA_FreeStandingBodyYaw)                                                 ui.set(Z.A_Limit, Z.SA_Limit)
-    ui.set(Z.A_LowerBodyYawTarget, Z.SA_LowerBodyYawTarget)                                                   ui.set(Z.A_FakeLagWhileShooting, Z.SA_FakeLagWhileShooting)
-    ui.set(Z.A_FakeYawLimit, Z.SA_FakeYawLimit)                                                               ui.set(Z.A_ResetOnBunnyHop, Z.SA_ResetOnBunnyHop)
-    ui.set(Z.A_EdgeYaw, Z.SA_EdgeYaw)                                                                         ui.set(Z.A_SlowMotion, Z.SA_SlowMotion)
-    ui.set(Z.A_SlowMotionType, Z.SA_SlowMotionType)                                                           ui.set(Z.A_OnShotAntiAim, Z.SA_OnShotAntiAim)
-    ui.set(Z.A_FreeStanding, Z.SA_FreeStanding)                                                               ui.set(Z.A_LegMovement, Z.SA_LegMovement)
-    ui.set(Z.A_FreeStandingIgnoreDuck, Z.SA_FreeStandingIgnoreDuck)                                           ui.set(Z.A_Enabled2, Z.SA_Enabled2)
-    ui.set(BodyYSlider, Z.SA_BodyYSlider)                                                                     ui.set(YawSlider, Z.SA_YawSlider)
-    ui.set(YawJSlider, Z.SA_YawJSlider)
+    for k, v in pairs(RA) do
+        SA[k] = ui_get(v)
+    end
+    Done(1, "Ant-Aim")
 end
 
 local function CopyLegit()
-    -- Pistol
-    ui.set(weapon_type, "Pistol")
-    Z.SLA_Enabled1                          = ui.get(Z.L_Enabled1)                                            Z.SLA_Enabled2                         = ui.get(Z.L_Enabled2)
-    Z.SLA_Speed                             = ui.get(Z.L_Speed)                                               Z.SLA_MinHitchance                     = ui.get(Z.L_MinHitchance)
-    Z.SLA_SpeedInAttack                     = ui.get(Z.L_SpeedInAttack)                                       Z.SLA_ReactionTime2                    = ui.get(Z.L_ReactionTime2)
-    Z.SLA_SpeedScaleFov                     = ui.get(Z.L_SpeedScaleFov)                                       Z.SLA_BurstFire                        = ui.get(Z.L_BurstFire)
-    Z.SLA_MaximumLockOnTime                 = ui.get(Z.L_MaximumLockOnTime)                                   Z.SLA_BurstSlide                       = ui.get(BurstSlide)
-    Z.SLA_ReactionTime1                     = ui.get(Z.L_ReactionTime1)                                       Z.SLA_MinDamage                        = ui.get(Z.L_MinDamage)
-    Z.SLA_MaximumFov                        = ui.get(Z.L_MaximumFov)                                          Z.SLA_AutomaticPenetration             = ui.get(Z.L_AutomaticPenetration)
-    Z.SLA_Pitch                             = ui.get(Z.L_Pitch)                                               Z.SLA_Head2                            = ui.get(Z.L_Head2)
-    Z.SLA_Yaw                               = ui.get(Yaw)                                                     Z.SLA_Chest2                           = ui.get(Z.L_Chest2)
-    Z.SLA_QickStop                          = ui.get(Z.L_QickStop)                                            Z.SLA_Stomach2                         = ui.get(Z.L_Stomach2)
-    Z.SLA_AimThroughSmoke                   = ui.get(Z.L_AimThroughSmoke)                                     Z.SLA_AccuracyBoost                    = ui.get(Z.L_AccuracyBoost)
-    Z.SLA_AimWhileBlind                     = ui.get(Z.L_AimWhileBlind)                                       Z.SLA_AccuracyBoostRange               = ui.get(Z.L_AccuracyBoostRange)
-    Z.SLA_Head1                             = ui.get(Z.L_Head1)                                               Z.SLA_StandAloneRecoilCompensation     = ui.get(Z.L_StandAloneRecoilCompensation)
-    Z.SLA_Chest1                            = ui.get(Z.L_Chest1)
-    Z.SLA_Stomach1                          = ui.get(Z.L_Stomach1)
-    -- Smg
-    ui.set(weapon_type, "Smg")
-    Z.SLB_Enabled1                          = ui.get(Z.L_Enabled1)                                            Z.SLB_Enabled2                         = ui.get(Z.L_Enabled2)
-    Z.SLB_Speed                             = ui.get(Z.L_Speed)                                               Z.SLB_MinHitchance                     = ui.get(Z.L_MinHitchance)
-    Z.SLB_SpeedInAttack                     = ui.get(Z.L_SpeedInAttack)                                       Z.SLB_ReactionTime2                    = ui.get(Z.L_ReactionTime2)
-    Z.SLB_SpeedScaleFov                     = ui.get(Z.L_SpeedScaleFov)                                       Z.SLB_BurstFire                        = ui.get(Z.L_BurstFire)
-    Z.SLB_MaximumLockOnTime                 = ui.get(Z.L_MaximumLockOnTime)                                   Z.SLB_BurstSlide                       = ui.get(BurstSlide)
-    Z.SLB_ReactionTime1                     = ui.get(Z.L_ReactionTime1)                                       Z.SLB_MinDamage                        = ui.get(Z.L_MinDamage)
-    Z.SLB_MaximumFov                        = ui.get(Z.L_MaximumFov)                                          Z.SLB_AutomaticPenetration             = ui.get(Z.L_AutomaticPenetration)
-    Z.SLB_Pitch                             = ui.get(Z.L_Pitch)                                               Z.SLB_Head2                            = ui.get(Z.L_Head2)
-    Z.SLB_Yaw                               = ui.get(Yaw)                                                     Z.SLB_Chest2                           = ui.get(Z.L_Chest2)
-    Z.SLB_QickStop                          = ui.get(Z.L_QickStop)                                            Z.SLB_Stomach2                         = ui.get(Z.L_Stomach2)
-    Z.SLB_AimThroughSmoke                   = ui.get(Z.L_AimThroughSmoke)                                     Z.SLB_AccuracyBoost                    = ui.get(Z.L_AccuracyBoost)
-    Z.SLB_AimWhileBlind                     = ui.get(Z.L_AimWhileBlind)                                       Z.SLB_AccuracyBoostRange               = ui.get(Z.L_AccuracyBoostRange)
-    Z.SLB_Head1                             = ui.get(Z.L_Head1)                                               Z.SLB_StandAloneRecoilCompensation     = ui.get(Z.L_StandAloneRecoilCompensation)
-    Z.SLB_Chest1                            = ui.get(Z.L_Chest1)
-    Z.SLB_Stomach1                          = ui.get(Z.L_Stomach1)
-    -- Rifle
-    ui.set(weapon_type, "Rifle")
-    Z.SLC_Enabled1                          = ui.get(Z.L_Enabled1)                                            Z.SLC_Enabled2                         = ui.get(Z.L_Enabled2)
-    Z.SLC_Speed                             = ui.get(Z.L_Speed)                                               Z.SLC_MinHitchance                     = ui.get(Z.L_MinHitchance)
-    Z.SLC_SpeedInAttack                     = ui.get(Z.L_SpeedInAttack)                                       Z.SLC_ReactionTime2                    = ui.get(Z.L_ReactionTime2)
-    Z.SLC_SpeedScaleFov                     = ui.get(Z.L_SpeedScaleFov)                                       Z.SLC_BurstFire                        = ui.get(Z.L_BurstFire)
-    Z.SLC_MaximumLockOnTime                 = ui.get(Z.L_MaximumLockOnTime)                                   Z.SLC_BurstSlide                       = ui.get(BurstSlide)
-    Z.SLC_ReactionTime1                     = ui.get(Z.L_ReactionTime1)                                       Z.SLC_MinDamage                        = ui.get(Z.L_MinDamage)
-    Z.SLC_MaximumFov                        = ui.get(Z.L_MaximumFov)                                          Z.SLC_AutomaticPenetration             = ui.get(Z.L_AutomaticPenetration)
-    Z.SLC_Pitch                             = ui.get(Z.L_Pitch)                                               Z.SLC_Head2                            = ui.get(Z.L_Head2)
-    Z.SLC_Yaw                               = ui.get(Yaw)                                                     Z.SLC_Chest2                           = ui.get(Z.L_Chest2)
-    Z.SLC_QickStop                          = ui.get(Z.L_QickStop)                                            Z.SLC_Stomach2                         = ui.get(Z.L_Stomach2)
-    Z.SLC_AimThroughSmoke                   = ui.get(Z.L_AimThroughSmoke)                                     Z.SLC_AccuracyBoost                    = ui.get(Z.L_AccuracyBoost)
-    Z.SLC_AimWhileBlind                     = ui.get(Z.L_AimWhileBlind)                                       Z.SLC_AccuracyBoostRange               = ui.get(Z.L_AccuracyBoostRange)
-    Z.SLC_Head1                             = ui.get(Z.L_Head1)                                               Z.SLC_StandAloneRecoilCompensation     = ui.get(Z.L_StandAloneRecoilCompensation)
-    Z.SLC_Chest1                            = ui.get(Z.L_Chest1)
-    Z.SLC_Stomach1                          = ui.get(Z.L_Stomach1)
-    -- Shotgun
-    ui.set(weapon_type, "Shotgun")
-    Z.SLD_Enabled1                          = ui.get(Z.L_Enabled1)                                            Z.SLD_Enabled2                         = ui.get(Z.L_Enabled2)
-    Z.SLD_Speed                             = ui.get(Z.L_Speed)                                               Z.SLD_MinHitchance                     = ui.get(Z.L_MinHitchance)
-    Z.SLD_SpeedInAttack                     = ui.get(Z.L_SpeedInAttack)                                       Z.SLD_ReactionTime2                    = ui.get(Z.L_ReactionTime2)
-    Z.SLD_SpeedScaleFov                     = ui.get(Z.L_SpeedScaleFov)                                       Z.SLD_BurstFire                        = ui.get(Z.L_BurstFire)
-    Z.SLD_MaximumLockOnTime                 = ui.get(Z.L_MaximumLockOnTime)                                   Z.SLD_BurstSlide                       = ui.get(BurstSlide)
-    Z.SLD_ReactionTime1                     = ui.get(Z.L_ReactionTime1)                                       Z.SLD_MinDamage                        = ui.get(Z.L_MinDamage)
-    Z.SLD_MaximumFov                        = ui.get(Z.L_MaximumFov)                                          Z.SLD_AutomaticPenetration             = ui.get(Z.L_AutomaticPenetration)
-    Z.SLD_Pitch                             = ui.get(Z.L_Pitch)                                               Z.SLD_Head2                            = ui.get(Z.L_Head2)
-    Z.SLD_Yaw                               = ui.get(Yaw)                                                     Z.SLD_Chest2                           = ui.get(Z.L_Chest2)
-    Z.SLD_QickStop                          = ui.get(Z.L_QickStop)                                            Z.SLD_Stomach2                         = ui.get(Z.L_Stomach2)
-    Z.SLD_AimThroughSmoke                   = ui.get(Z.L_AimThroughSmoke)                                     Z.SLD_AccuracyBoost                    = ui.get(Z.L_AccuracyBoost)
-    Z.SLD_AimWhileBlind                     = ui.get(Z.L_AimWhileBlind)                                       Z.SLD_AccuracyBoostRange               = ui.get(Z.L_AccuracyBoostRange)
-    Z.SLD_Head1                             = ui.get(Z.L_Head1)                                               Z.SLD_StandAloneRecoilCompensation     = ui.get(Z.L_StandAloneRecoilCompensation)
-    Z.SLD_Chest1                            = ui.get(Z.L_Chest1)
-    Z.SLD_Stomach1                          = ui.get(Z.L_Stomach1)
-    -- Machinegun
-    ui.get(weapon_type, "Machine gun")
-    Z.SLE_Enabled1                          = ui.get(Z.L_Enabled1)                                            Z.SLE_Enabled2                         = ui.get(Z.L_Enabled2)
-    Z.SLE_Speed                             = ui.get(Z.L_Speed)                                               Z.SLE_MinHitchance                     = ui.get(Z.L_MinHitchance)
-    Z.SLE_SpeedInAttack                     = ui.get(Z.L_SpeedInAttack)                                       Z.SLE_ReactionTime2                    = ui.get(Z.L_ReactionTime2)
-    Z.SLE_SpeedScaleFov                     = ui.get(Z.L_SpeedScaleFov)                                       Z.SLE_BurstFire                        = ui.get(Z.L_BurstFire)
-    Z.SLE_MaximumLockOnTime                 = ui.get(Z.L_MaximumLockOnTime)                                   Z.SLE_BurstSlide                       = ui.get(BurstSlide)
-    Z.SLE_ReactionTime1                     = ui.get(Z.L_ReactionTime1)                                       Z.SLE_MinDamage                        = ui.get(Z.L_MinDamage)
-    Z.SLE_MaximumFov                        = ui.get(Z.L_MaximumFov)                                          Z.SLE_AutomaticPenetration             = ui.get(Z.L_AutomaticPenetration)
-    Z.SLE_Pitch                             = ui.get(Z.L_Pitch)                                               Z.SLE_Head2                            = ui.get(Z.L_Head2)
-    Z.SLE_Yaw                               = ui.get(Yaw)                                                     Z.SLE_Chest2                           = ui.get(Z.L_Chest2)
-    Z.SLE_QickStop                          = ui.get(Z.L_QickStop)                                            Z.SLE_Stomach2                         = ui.get(Z.L_Stomach2)
-    Z.SLE_AimThroughSmoke                   = ui.get(Z.L_AimThroughSmoke)                                     Z.SLE_AccuracyBoost                    = ui.get(Z.L_AccuracyBoost)
-    Z.SLE_AimWhileBlind                     = ui.get(Z.L_AimWhileBlind)                                       Z.SLE_AccuracyBoostRange               = ui.get(Z.L_AccuracyBoostRange)
-    Z.SLE_Head1                             = ui.get(Z.L_Head1)                                               Z.SLE_StandAloneRecoilCompensation     = ui.get(Z.L_StandAloneRecoilCompensation)
-    Z.SLE_Chest1                            = ui.get(Z.L_Chest1)
-    Z.SLE_Stomach1                          = ui.get(Z.L_Stomach1)
-    -- Sniper
-    ui.set(weapon_type, "Sniper")
-    Z.SLF_Enabled1                          = ui.get(Z.L_Enabled1)                                            Z.SLF_Enabled2                         = ui.get(Z.L_Enabled2)
-    Z.SLF_Speed                             = ui.get(Z.L_Speed)                                               Z.SLF_MinHitchance                     = ui.get(Z.L_MinHitchance)
-    Z.SLF_SpeedInAttack                     = ui.get(Z.L_SpeedInAttack)                                       Z.SLF_ReactionTime2                    = ui.get(Z.L_ReactionTime2)
-    Z.SLF_SpeedScaleFov                     = ui.get(Z.L_SpeedScaleFov)                                       Z.SLF_BurstFire                        = ui.get(Z.L_BurstFire)
-    Z.SLF_MaximumLockOnTime                 = ui.get(Z.L_MaximumLockOnTime)                                   Z.SLF_BurstSlide                       = ui.get(BurstSlide)
-    Z.SLF_ReactionTime1                     = ui.get(Z.L_ReactionTime1)                                       Z.SLF_MinDamage                        = ui.get(Z.L_MinDamage)
-    Z.SLF_MaximumFov                        = ui.get(Z.L_MaximumFov)                                          Z.SLF_AutomaticPenetration             = ui.get(Z.L_AutomaticPenetration)
-    Z.SLF_Pitch                             = ui.get(Z.L_Pitch)                                               Z.SLF_Head2                            = ui.get(Z.L_Head2)
-    Z.SLF_Yaw                               = ui.get(Yaw)                                                     Z.SLF_Chest2                           = ui.get(Z.L_Chest2)
-    Z.SLF_QickStop                          = ui.get(Z.L_QickStop)                                            Z.SLF_Stomach2                         = ui.get(Z.L_Stomach2)
-    Z.SLF_AimThroughSmoke                   = ui.get(Z.L_AimThroughSmoke)                                     Z.SLF_AccuracyBoost                    = ui.get(Z.L_AccuracyBoost)
-    Z.SLF_AimWhileBlind                     = ui.get(Z.L_AimWhileBlind)                                       Z.SLF_AccuracyBoostRange               = ui.get(Z.L_AccuracyBoostRange)
-    Z.SLF_Head1                             = ui.get(Z.L_Head1)                                               Z.SLF_StandAloneRecoilCompensation     = ui.get(Z.L_StandAloneRecoilCompensation)
-    Z.SLF_Chest1                            = ui.get(Z.L_Chest1)
-    Z.SLF_Stomach1                          = ui.get(Z.L_Stomach1)
-end
-
-local function PasteLegit()
-    -- Pistol
-    ui.set(weapon_type, "Pistol")
-    ui.set(Z.L_Enabled1, Z.SLA_Enabled1)                                                                      ui.set(Z.L_Enabled2, Z.SLA_Enabled2)
-    ui.set(Z.L_Speed, Z.SLA_Speed)                                                                            ui.set(Z.L_MinHitchance, Z.SLA_MinHitchance)
-    ui.set(Z.L_SpeedInAttack, Z.SLA_SpeedInAttack)                                                            ui.set(Z.L_ReactionTime2, Z.SLA_ReactionTime2)
-    ui.set(Z.L_SpeedScaleFov, Z.SLA_SpeedScaleFov)                                                            ui.set(Z.L_BurstFire, Z.SLA_BurstFire)
-    ui.set(Z.L_MaximumLockOnTime, Z.SLA_MaximumLockOnTime)                                                    ui.set(BurstSlide, Z.SLA_BurstSlide)
-    ui.set(Z.L_ReactionTime1, Z.SLA_ReactionTime1)                                                            ui.set(Z.L_MinDamage, Z.SLA_MinDamage)
-    ui.set(Z.L_MaximumFov, Z.SLA_MaximumFov)                                                                  ui.set(Z.L_AutomaticPenetration, Z.SLA_AutomaticPenetration)
-    ui.set(Z.L_Pitch, Z.SLA_Pitch)                                                                            ui.set(Z.L_Head2, Z.SLA_Head2)
-    ui.set(Yaw, Z.SLA_Yaw)                                                                                    ui.set(Z.L_Chest2, Z.SLA_Chest2)
-    ui.set(Z.L_QickStop, Z.SLA_QickStop)                                                                      ui.set(Z.L_Stomach2, Z.SLA_Stomach2)
-    ui.set(Z.L_AimThroughSmoke, Z.SLA_AimThroughSmoke)                                                        ui.set(Z.L_AccuracyBoost, Z.SLA_AccuracyBoost)
-    ui.set(Z.L_AimWhileBlind, Z.SLA_AimWhileBlind)                                                            ui.set(Z.L_AccuracyBoostRange, Z.SLA_AccuracyBoostRange)
-    ui.set(Z.L_Head1, Z.SLA_Head1)                                                                            ui.set(Z.L_StandAloneRecoilCompensation, Z.SLA_StandAloneRecoilCompensation)
-    ui.set(Z.L_Chest1, Z.SLA_Chest1)
-    ui.set(Z.L_Stomach1, Z.SLA_Stomach1)
-    -- Smg
-    ui.set(weapon_type, "Smg")
-    ui.set(Z.L_Enabled1, Z.SLB_Enabled1)                                                                      ui.set(Z.L_Enabled2, Z.SLB_Enabled2)
-    ui.set(Z.L_Speed, Z.SLB_Speed)                                                                            ui.set(Z.L_MinHitchance, Z.SLB_MinHitchance)
-    ui.set(Z.L_SpeedInAttack, Z.SLB_SpeedInAttack)                                                            ui.set(Z.L_ReactionTime2, Z.SLB_ReactionTime2)
-    ui.set(Z.L_SpeedScaleFov, Z.SLB_SpeedScaleFov)                                                            ui.set(Z.L_BurstFire, Z.SLB_BurstFire)
-    ui.set(Z.L_MaximumLockOnTime, Z.SLB_MaximumLockOnTime)                                                    ui.set(BurstSlide, Z.SLB_BurstSlide)
-    ui.set(Z.L_ReactionTime1, Z.SLB_ReactionTime1)                                                            ui.set(Z.L_MinDamage, Z.SLB_MinDamage)
-    ui.set(Z.L_MaximumFov, Z.SLB_MaximumFov)                                                                  ui.set(Z.L_AutomaticPenetration, Z.SLB_AutomaticPenetration)
-    ui.set(Z.L_Pitch, Z.SLB_Pitch)                                                                            ui.set(Z.L_Head2, Z.SLB_Head2)
-    ui.set(Yaw, Z.SLB_Yaw)                                                                                    ui.set(Z.L_Chest2, Z.SLB_Chest2)
-    ui.set(Z.L_QickStop, Z.SLB_QickStop)                                                                      ui.set(Z.L_Stomach2, Z.SLB_Stomach2)
-    ui.set(Z.L_AimThroughSmoke, Z.SLB_AimThroughSmoke)                                                        ui.set(Z.L_AccuracyBoost, Z.SLB_AccuracyBoost)
-    ui.set(Z.L_AimWhileBlind, Z.SLB_AimWhileBlind)                                                            ui.set(Z.L_AccuracyBoostRange, Z.SLB_AccuracyBoostRange)
-    ui.set(Z.L_Head1, Z.SLB_Head1)                                                                            ui.set(Z.L_StandAloneRecoilCompensation, Z.SLB_StandAloneRecoilCompensation)
-    ui.set(Z.L_Chest1, Z.SLB_Chest1)
-    ui.set(Z.L_Stomach1, Z.SLB_Stomach1)
-    -- Rifle
-    ui.set(weapon_type, "Rifle")
-    ui.set(Z.L_Enabled1, Z.SLC_Enabled1)                                                                      ui.set(Z.L_Enabled2, Z.SLC_Enabled2)
-    ui.set(Z.L_Speed, Z.SLC_Speed)                                                                            ui.set(Z.L_MinHitchance, Z.SLC_MinHitchance)
-    ui.set(Z.L_SpeedInAttack, Z.SLC_SpeedInAttack)                                                            ui.set(Z.L_ReactionTime2, Z.SLC_ReactionTime2)
-    ui.set(Z.L_SpeedScaleFov, Z.SLC_SpeedScaleFov)                                                            ui.set(Z.L_BurstFire, Z.SLC_BurstFire)
-    ui.set(Z.L_MaximumLockOnTime, Z.SLC_MaximumLockOnTime)                                                    ui.set(BurstSlide, Z.SLC_BurstSlide)
-    ui.set(Z.L_ReactionTime1, Z.SLC_ReactionTime1)                                                            ui.set(Z.L_MinDamage, Z.SLC_MinDamage)
-    ui.set(Z.L_MaximumFov, Z.SLC_MaximumFov)                                                                  ui.set(Z.L_AutomaticPenetration, Z.SLC_AutomaticPenetration)
-    ui.set(Z.L_Pitch, Z.SLC_Pitch)                                                                            ui.set(Z.L_Head2, Z.SLC_Head2)
-    ui.set(Yaw, Z.SLC_Yaw)                                                                                    ui.set(Z.L_Chest2, Z.SLC_Chest2)
-    ui.set(Z.L_QickStop, Z.SLC_QickStop)                                                                      ui.set(Z.L_Stomach2, Z.SLC_Stomach2)
-    ui.set(Z.L_AimThroughSmoke, Z.SLC_AimThroughSmoke)                                                        ui.set(Z.L_AccuracyBoost, Z.SLC_AccuracyBoost)
-    ui.set(Z.L_AimWhileBlind, Z.SLC_AimWhileBlind)                                                            ui.set(Z.L_AccuracyBoostRange, Z.SLC_AccuracyBoostRange)
-    ui.set(Z.L_Head1, Z.SLC_Head1)                                                                            ui.set(Z.L_StandAloneRecoilCompensation, Z.SLC_StandAloneRecoilCompensation)
-    ui.set(Z.L_Chest1, Z.SLC_Chest1)
-    ui.set(Z.L_Stomach1, Z.SLC_Stomach1)
-    -- Shotgun
-    ui.set(weapon_type, "Shotgun")
-    ui.set(Z.L_Enabled1, Z.SLD_Enabled1)                                                                      ui.set(Z.L_Enabled2, Z.SLD_Enabled2)
-    ui.set(Z.L_Speed, Z.SLD_Speed)                                                                            ui.set(Z.L_MinHitchance, Z.SLD_MinHitchance)
-    ui.set(Z.L_SpeedInAttack, Z.SLD_SpeedInAttack)                                                            ui.set(Z.L_ReactionTime2, Z.SLD_ReactionTime2)
-    ui.set(Z.L_SpeedScaleFov, Z.SLD_SpeedScaleFov)                                                            ui.set(Z.L_BurstFire, Z.SLD_BurstFire)
-    ui.set(Z.L_MaximumLockOnTime, Z.SLD_MaximumLockOnTime)                                                    ui.set(BurstSlide, Z.SLD_BurstSlide)
-    ui.set(Z.L_ReactionTime1, Z.SLD_ReactionTime1)                                                            ui.set(Z.L_MinDamage, Z.SLD_MinDamage)
-    ui.set(Z.L_MaximumFov, Z.SLD_MaximumFov)                                                                  ui.set(Z.L_AutomaticPenetration, Z.SLD_AutomaticPenetration)
-    ui.set(Z.L_Pitch, Z.SLD_Pitch)                                                                            ui.set(Z.L_Head2, Z.SLD_Head2)
-    ui.set(Yaw, Z.SLD_Yaw)                                                                                    ui.set(Z.L_Chest2, Z.SLD_Chest2)
-    ui.set(Z.L_QickStop, Z.SLD_QickStop)                                                                      ui.set(Z.L_Stomach2, Z.SLD_Stomach2)
-    ui.set(Z.L_AimThroughSmoke, Z.SLD_AimThroughSmoke)                                                        ui.set(Z.L_AccuracyBoost, Z.SLD_AccuracyBoost)
-    ui.set(Z.L_AimWhileBlind, Z.SLD_AimWhileBlind)                                                            ui.set(Z.L_AccuracyBoostRange, Z.SLD_AccuracyBoostRange)
-    ui.set(Z.L_Head1, Z.SLD_Head1)                                                                            ui.set(Z.L_StandAloneRecoilCompensation, Z.SLD_StandAloneRecoilCompensation)
-    ui.set(Z.L_Chest1, Z.SLD_Chest1)
-    ui.set(Z.L_Stomach1, Z.SLD_Stomach1)
-    -- Machinegun
-    ui.set(weapon_type, "Machine gun")
-    ui.set(Z.L_Enabled1, Z.SLE_Enabled1)                                                                      ui.set(Z.L_Enabled2, Z.SLE_Enabled2)
-    ui.set(Z.L_Speed, Z.SLE_Speed)                                                                            ui.set(Z.L_MinHitchance, Z.SLE_MinHitchance)
-    ui.set(Z.L_SpeedInAttack, Z.SLE_SpeedInAttack)                                                            ui.set(Z.L_ReactionTime2, Z.SLE_ReactionTime2)
-    ui.set(Z.L_SpeedScaleFov, Z.SLE_SpeedScaleFov)                                                            ui.set(Z.L_BurstFire, Z.SLE_BurstFire)
-    ui.set(Z.L_MaximumLockOnTime, Z.SLE_MaximumLockOnTime)                                                    ui.set(BurstSlide, Z.SLE_BurstSlide)
-    ui.set(Z.L_ReactionTime1, Z.SLE_ReactionTime1)                                                            ui.set(Z.L_MinDamage, Z.SLE_MinDamage)
-    ui.set(Z.L_MaximumFov, Z.SLE_MaximumFov)                                                                  ui.set(Z.L_AutomaticPenetration, Z.SLE_AutomaticPenetration)
-    ui.set(Z.L_Pitch, Z.SLE_Pitch)                                                                            ui.set(Z.L_Head2, Z.SLE_Head2)
-    ui.set(Yaw, Z.SLE_Yaw)                                                                                    ui.set(Z.L_Chest2, Z.SLE_Chest2)
-    ui.set(Z.L_QickStop, Z.SLE_QickStop)                                                                      ui.set(Z.L_Stomach2, Z.SLE_Stomach2)
-    ui.set(Z.L_AimThroughSmoke, Z.SLE_AimThroughSmoke)                                                        ui.set(Z.L_AccuracyBoost, Z.SLE_AccuracyBoost)
-    ui.set(Z.L_AimWhileBlind, Z.SLE_AimWhileBlind)                                                            ui.set(Z.L_AccuracyBoostRange, Z.SLE_AccuracyBoostRange)
-    ui.set(Z.L_Head1, Z.SLE_Head1)                                                                            ui.set(Z.L_StandAloneRecoilCompensation, Z.SLE_StandAloneRecoilCompensation)
-    ui.set(Z.L_Chest1, Z.SLE_Chest1)
-    ui.set(Z.L_Stomach1, Z.SLE_Stomach1)
-    -- Sniper
-    ui.set(weapon_type, "Sniper")
-    ui.set(Z.L_Enabled1, Z.SLF_Enabled1)                                                                      ui.set(Z.L_Enabled2, Z.SLF_Enabled2)
-    ui.set(Z.L_Speed, Z.SLF_Speed)                                                                            ui.set(Z.L_MinHitchance, Z.SLF_MinHitchance)
-    ui.set(Z.L_SpeedInAttack, Z.SLF_SpeedInAttack)                                                            ui.set(Z.L_ReactionTime2, Z.SLF_ReactionTime2)
-    ui.set(Z.L_SpeedScaleFov, Z.SLF_SpeedScaleFov)                                                            ui.set(Z.L_BurstFire, Z.SLF_BurstFire)
-    ui.set(Z.L_MaximumLockOnTime, Z.SLF_MaximumLockOnTime)                                                    ui.set(BurstSlide, Z.SLF_BurstSlide)
-    ui.set(Z.L_ReactionTime1, Z.SLF_ReactionTime1)                                                            ui.set(Z.L_MinDamage, Z.SLF_MinDamage)
-    ui.set(Z.L_MaximumFov, Z.SLF_MaximumFov)                                                                  ui.set(Z.L_AutomaticPenetration, Z.SLF_AutomaticPenetration)
-    ui.set(Z.L_Pitch, Z.SLF_Pitch)                                                                            ui.set(Z.L_Head2, Z.SLF_Head2)
-    ui.set(Yaw, Z.SLF_Yaw)                                                                                    ui.set(Z.L_Chest2, Z.SLF_Chest2)
-    ui.set(Z.L_QickStop, Z.SLF_QickStop)                                                                      ui.set(Z.L_Stomach2, Z.SLF_Stomach2)
-    ui.set(Z.L_AimThroughSmoke, Z.SLF_AimThroughSmoke)                                                        ui.set(Z.L_AccuracyBoost, Z.SLF_AccuracyBoost)
-    ui.set(Z.L_AimWhileBlind, Z.SLF_AimWhileBlind)                                                            ui.set(Z.L_AccuracyBoostRange, Z.SLF_AccuracyBoostRange)
-    ui.set(Z.L_Head1, Z.SLF_Head1)                                                                            ui.set(Z.L_StandAloneRecoilCompensation, Z.SLF_StandAloneRecoilCompensation)
-    ui.set(Z.L_Chest1, Z.SLF_Chest1)
-    ui.set(Z.L_Stomach1, Z.SLF_Stomach1)
+    for _, t in pairs(LegitTab) do
+        ui_set(weapon_type, t)
+        for k, v in pairs(RL) do
+            SL[t .. k] = ui_get(v)
+        end
+    end
+    Done(1, "Legit")
 end
 
 local function CopyVisuals()
-    Z.SV_Teammates                          = ui.get(Z.V_Teammates)                                           Z.SV_Radar                             = ui.get(Z.V_Radar)
-    Z.SV_Dormant                            = ui.get(Z.V_Dormant)                                             Z.SV_DroppedWeapon                     = ui.get(Z.V_DroppedWeapon)
-    Z.SV_BoundingBox                        = ui.get(Z.V_BoundingBox)                                         Z.SV_DroppedWeaponAmmo                 = ui.get(Z.V_DroppedWeaponAmmo)
-    Z.SV_HealthBar                          = ui.get(Z.V_HealthBar)                                           Z.SV_Grenades                          = ui.get(Z.V_Grenades)
-    Z.SV_Name                               = ui.get(Z.V_Name)                                                Z.SV_InaccuracyOverlay                 = ui.get(Z.V_InaccuracyOverlay)
-    Z.SV_Flags                              = ui.get(Z.V_Flags)                                               Z.SV_RecoilOverlay                     = ui.get(Z.V_RecoilOverlay)
-    Z.SV_WeaponText                         = ui.get(Z.V_WeaponText)                                          Z.SV_Crosshair                         = ui.get(Z.V_Crosshair)
-    Z.SV_WeaponIcon                         = ui.get(Z.V_WeaponIcon)                                          Z.SV_Bomb                              = ui.get(Z.V_Bomb)
-    Z.SV_Ammo                               = ui.get(Z.V_Ammo)                                                Z.SV_GrenadeTrajectory                 = ui.get(Z.V_GrenadeTrajectory)
-    Z.SV_Distance                           = ui.get(Z.V_Distance)                                            Z.SV_GrenadeProximityWarning           = ui.get(Z.V_GrenadeProximityWarning)
-    Z.SV_Glow                               = ui.get(Z.V_Glow)                                                Z.SV_Spectators                        = ui.get(Z.V_Spectators)
-    Z.SV_HitMarker                          = ui.get(Z.V_HitMarker)                                           Z.SV_PenetrationReticle                = ui.get(Z.V_PenetrationReticle)
-    Z.SV_HitMarkerSound                     = ui.get(Z.V_HitMarkerSound)                                      Z.SV_Hostages                          = ui.get(Z.V_Hostages)
-    Z.SV_VisualizeSounds                    = ui.get(Z.V_VisualizeSounds)                                     Z.SV_SharedEsp                         = ui.get(Z.V_SharedEsp)
-    Z.SV_LineOfSight                        = ui.get(Z.V_LineOfSight)                                         Z.SV_SharedEspWithOtherTeam            = ui.get(Z.V_SharedEspWithOtherTeam)
-    Z.SV_Money                              = ui.get(Z.V_Money)                                               Z.SV_RestrictSharedEspUpdates          = ui.get(Z.V_RestrictSharedEspUpdates)
-    Z.SV_Skeleton                           = ui.get(Z.V_Skeleton)                                            Z.SV_UpgradeTablet                     = ui.get(Z.V_UpgradeTablet)
-    Z.SV_OOFA                               = ui.get(Z.V_OOFA)                                                Z.SV_DangerZoneItems                   = ui.get(Z.V_DangerZoneItems)
-    Z.SV_Player                             = ui.get(Z.V_Player)                                              Z.SV_DroneGun                          = ui.get(Z.V_DroneGun)
-    Z.SV_Pbw                                = ui.get(Z.V_Pbw)                                                 Z.SV_BlackHawk                         = ui.get(Z.V_BlackHawk)
-    Z.SV_Teammate                           = ui.get(Z.V_Teammate)                                            Z.SV_Drone                             = ui.get(Z.V_Drone)
-    Z.SV_Tbw                                = ui.get(Z.V_Tbw)                                                 Z.SV_RandomCase                        = ui.get(Z.V_RandomCase)
-    Z.SV_LPlayer                            = ui.get(Z.V_LPlayer)                                             Z.SV_ToolCase                          = ui.get(Z.V_ToolCase)
-    Z.SV_LPlayerF                           = ui.get(Z.V_LPlayerF)                                            Z.SV_PistolCase                        = ui.get(Z.V_PistolCase)
-    Z.SV_Hands                              = ui.get(Z.V_Hands)                                               Z.SV_ExplosiveCase                     = ui.get(Z.V_ExplosiveCase)
-    Z.SV_DisableModelOcclusion              = ui.get(Z.V_DisableModelOcclusion)                               Z.SV_HeavyWeaponCase                   = ui.get(Z.V_HeavyWeaponCase)
-    Z.SV_Shadow                             = ui.get(Z.V_Shadow)                                              Z.SV_LightWeaponCase                   = ui.get(Z.V_LightWeaponCase)
-    Z.SV_RemoveFlash                        = ui.get(Z.V_RemoveFlash)                                         Z.SV_DuffleBag                         = ui.get(Z.V_DuffleBag)
-    Z.SV_RemoveSmoke                        = ui.get(Z.V_RemoveSmoke)                                         Z.SV_Jammer                            = ui.get(Z.V_Jammer)
-    Z.SV_RemoveFog                          = ui.get(Z.V_RemoveFog)                                           Z.SV_Ammobox                           = ui.get(Z.V_Ammobox)
-    Z.SV_RemoveSkybox                       = ui.get(Z.V_RemoveSkybox)                                        Z.SV_Armor                             = ui.get(Z.V_Armor)
-    Z.SV_VisualRecoilAdjustment             = ui.get(Z.V_VisualRecoilAdjustment)                              Z.SV_ParachutePack                     = ui.get(Z.V_ParachutePack)
-    Z.SV_TransparentWalls                   = ui.get(Z.V_TransparentWalls)                                    Z.SV_Briefcase                         = ui.get(Z.V_Briefcase)
-    Z.SV_TransparentProps                   = ui.get(Z.V_TransparentProps)                                    Z.SV_TabletUpgradeZone                 = ui.get(Z.V_TabletUpgradeZone)
-    Z.SV_BrightnessAdjustment               = ui.get(Z.V_BrightnessAdjustment)                                Z.SV_TabletUpgradeDrone                = ui.get(Z.V_TabletUpgradeDrone)
-    Z.SV_RemoveScope                        = ui.get(Z.V_RemoveScope)                                         Z.SV_CashStack                         = ui.get(Z.V_CashStack)
-    Z.SV_InstantScope                       = ui.get(Z.V_InstantScope)                                        Z.SV_Props                             = ui.get(Z.V_Props)
-    Z.SV_DisablePostProcessing              = ui.get(Z.V_DisablePostProcessing)                               Z.SV_Size                              = ui.get(Size)
-    Z.SV_ForceThirdPersonAlive              = ui.get(Z.V_ForceThirdPersonAlive)                               Z.SV_Cham1                             = ui.get(Cham1)
-    Z.SV_ForceThirdPersonDead               = ui.get(Z.V_ForceThirdPersonDead)                                Z.SV_Cham2                             = ui.get(Cham2)
-    Z.SV_DisableTeammates                   = ui.get(Z.V_DisableTeammates)                                    Z.SV_Cham3                             = ui.get(Cham3)
-    Z.SV_BulletTracers                      = ui.get(Z.V_BulletTracers)                                       Z.SV_Cham4                             = ui.get(Cham4)
-    Z.SV_BulletImpacts                      = ui.get(Z.V_BulletImpacts)                                       Z.SV_Cham5                             = ui.get(Cham5)
-    Z.SV_Duration                           = ui.get(Duration)                                                Z.SV_Pos                               = ui.get(Pos)
-    
-                                              Z.R1,Z.B1,Z.G1,Z.A1     = ui.get(Color1)  Z.R2,Z.B2,Z.G2,Z.A2     = ui.get(Color2)   Z.R3,Z.B3,Z.G3,Z.A3     = ui.get(Color3)  Z.R4,Z.B4,Z.G4,Z.A4     = ui.get(Color4)
-    Z.R5,Z.B5,Z.G5,Z.A5     = ui.get(Color5)  Z.R6,Z.B6,Z.G6,Z.A6     = ui.get(Color6)  Z.R7,Z.B7,Z.G7,Z.A7     = ui.get(Color7)   Z.R8,Z.B8,Z.G8,Z.A8     = ui.get(Color8)  Z.R9,Z.B9,Z.G9,Z.A9     = ui.get(Color9)
-    Z.R10,Z.B10,Z.G10,Z.A10 = ui.get(Color10) Z.R11,Z.B11,Z.G11,Z.A11 = ui.get(Color11) Z.R12,Z.B12,Z.G12,Z.A12 = ui.get(Color12)  Z.R13,Z.B13,Z.G13,Z.A13 = ui.get(Color13) Z.R14,Z.B14,Z.G14,Z.A14 = ui.get(Color14)
-    Z.R15,Z.B15,Z.G15,Z.A15 = ui.get(Color15) Z.R16,Z.B16,Z.G16,Z.A16 = ui.get(Color16) Z.R17,Z.B17,Z.G17,Z.A17 = ui.get(Color17)  Z.R18,Z.B18,Z.G18,Z.A18 = ui.get(Color18) Z.R19,Z.B19,Z.G19,Z.A19 = ui.get(Color19)
-    Z.R20,Z.B20,Z.G20,Z.A20 = ui.get(Color20) Z.R21,Z.B21,Z.G21,Z.A21 = ui.get(Color21) Z.R22,Z.B22,Z.G22,Z.A22 = ui.get(Color22)  Z.R23,Z.B23,Z.G23,Z.A23 = ui.get(Color23) Z.R24,Z.B24,Z.G24,Z.A24 = ui.get(Color24)
-    Z.R25,Z.B25,Z.G25,Z.A25 = ui.get(Color25) Z.R26,Z.B26,Z.G26,Z.A26 = ui.get(Color26) Z.R27,Z.B27,Z.G27,Z.A27 = ui.get(Color27)  Z.R28,Z.B28,Z.G28,Z.A28 = ui.get(Color28) Z.R29,Z.B29,Z.G29,Z.A29 = ui.get(Color29)
-    Z.R30,Z.B30,Z.G30,Z.A30 = ui.get(Color30) Z.R31,Z.B31,Z.G31,Z.A31 = ui.get(Color31) Z.R32,Z.B32,Z.G32,Z.A32 = ui.get(Color32)  Z.R33,Z.B33,Z.G33,Z.A33 = ui.get(Color33) Z.R34,Z.B34,Z.G34,Z.A34 = ui.get(Color34)
-    Z.R35,Z.B35,Z.G35,Z.A35 = ui.get(Color35) Z.R36,Z.B36,Z.G36,Z.A36 = ui.get(Color36) Z.R37,Z.B37,Z.G37,Z.A37 = ui.get(Color37)  Z.R38,Z.B38,Z.G38,Z.A38 = ui.get(Color38) Z.R39,Z.B39,Z.G39,Z.A39 = ui.get(Color39)
-    Z.R40,Z.B40,Z.G40,Z.A40 = ui.get(Color40) Z.R41,Z.B41,Z.G41,Z.A41 = ui.get(Color41) Z.R42,Z.B42,Z.G42,Z.A42 = ui.get(Color42)  Z.R43,Z.B43,Z.G43,Z.A43 = ui.get(Color43) Z.R44,Z.B44,Z.G44,Z.A44 = ui.get(Color44)
-    Z.R45,Z.B45,Z.G45,Z.A45 = ui.get(Color45) Z.R46,Z.B46,Z.G46,Z.A46 = ui.get(Color46) Z.R47,Z.B47,Z.G47,Z.A47 = ui.get(Color47)  Z.R48,Z.B48,Z.G48,Z.A48 = ui.get(Color48) Z.R49,Z.B49,Z.G49,Z.A49 = ui.get(Color49)
-end
-
-local function PasteVisuals()
-    ui.set(Z.V_Teammates, Z.SV_Teammates)                                                                     ui.set(Z.V_Radar, Z.SV_Radar)
-    ui.set(Z.V_Dormant, Z.SV_Dormant)                                                                         ui.set(Z.V_DroppedWeapon, Z.SV_DroppedWeapon)
-    ui.set(Z.V_BoundingBox, Z.SV_BoundingBox)                                                                 ui.set(Z.V_DroppedWeaponAmmo, Z.SV_DroppedWeaponAmmo)
-    ui.set(Z.V_HealthBar, Z.SV_HealthBar)                                                                     ui.set(Z.V_Grenades, Z.SV_Grenades)
-    ui.set(Z.V_Name, Z.SV_Name)                                                                               ui.set(Z.V_InaccuracyOverlay, Z.SV_InaccuracyOverlay)
-    ui.set(Z.V_Flags, Z.SV_Flags)                                                                             ui.set(Z.V_RecoilOverlay, Z.SV_RecoilOverlay)
-    ui.set(Z.V_WeaponText, Z.SV_WeaponText)                                                                   ui.set(Z.V_Crosshair, Z.SV_Crosshair)
-    ui.set(Z.V_WeaponIcon, Z.SV_WeaponIcon)                                                                   ui.set(Z.V_Bomb, Z.SV_Bomb)
-    ui.set(Z.V_Ammo, Z.SV_Ammo)                                                                               ui.set(Z.V_GrenadeTrajectory, Z.SV_GrenadeTrajectory)
-    ui.set(Z.V_Distance, Z.SV_Distance)                                                                       ui.set(Z.V_GrenadeProximityWarning, Z.SV_GrenadeProximityWarning)
-    ui.set(Z.V_Glow, Z.SV_Glow)                                                                               ui.set(Z.V_Spectators, Z.SV_Spectators)
-    ui.set(Z.V_HitMarker, Z.SV_HitMarker)                                                                     ui.set(Z.V_PenetrationReticle, Z.SV_PenetrationReticle)
-    ui.set(Z.V_HitMarkerSound, Z.SV_HitMarkerSound)                                                           ui.set(Z.V_Hostages, Z.SV_Hostages)
-    ui.set(Z.V_VisualizeSounds, Z.SV_VisualizeSounds)                                                         ui.set(Z.V_SharedEsp, Z.SV_SharedEsp)
-    ui.set(Z.V_LineOfSight, Z.SV_LineOfSight)                                                                 ui.set(Z.V_SharedEspWithOtherTeam, Z.SV_SharedEspWithOtherTeam)
-    ui.set(Z.V_Money, Z.SV_Money)                                                                             ui.set(Z.V_RestrictSharedEspUpdates, Z.SV_RestrictSharedEspUpdates)
-    ui.set(Z.V_Skeleton, Z.SV_Skeleton)                                                                       ui.set(Z.V_UpgradeTablet, Z.SV_UpgradeTablet)
-    ui.set(Z.V_OOFA, Z.SV_OOFA)                                                                               ui.set(Z.V_DangerZoneItems, Z.SV_DangerZoneItems)
-    ui.set(Z.V_Player, Z.SV_Player)                                                                           ui.set(Z.V_DroneGun, Z.SV_DroneGun)
-    ui.set(Z.V_Pbw, Z.SV_Pbw)                                                                                 ui.set(Z.V_BlackHawk, Z.SV_BlackHawk)
-    ui.set(Z.V_Teammate, Z.SV_Teammate)                                                                       ui.set(Z.V_Drone, Z.SV_Drone)
-    ui.set(Z.V_Tbw, Z.SV_Tbw)                                                                                 ui.set(Z.V_RandomCase, Z.SV_RandomCase)
-    ui.set(Z.V_LPlayer, Z.SV_LPlayer)                                                                         ui.set(Z.V_ToolCase, Z.SV_ToolCase)
-    ui.set(Z.V_LPlayerF, Z.SV_LPlayerF)                                                                       ui.set(Z.V_PistolCase, Z.SV_PistolCase)
-    ui.set(Z.V_Hands, Z.SV_Hands)                                                                             ui.set(Z.V_ExplosiveCase, Z.SV_ExplosiveCase)
-    ui.set(Z.V_DisableModelOcclusion, Z.SV_DisableModelOcclusion)                                             ui.set(Z.V_HeavyWeaponCase, Z.SV_HeavyWeaponCase)
-    ui.set(Z.V_Shadow, Z.SV_Shadow)                                                                           ui.set(Z.V_LightWeaponCase, Z.SV_LightWeaponCase)
-    ui.set(Z.V_RemoveFlash, Z.SV_RemoveFlash)                                                                 ui.set(Z.V_DuffleBag, Z.SV_DuffleBag)
-    ui.set(Z.V_RemoveSmoke, Z.SV_RemoveSmoke)                                                                 ui.set(Z.V_Jammer, Z.SV_Jammer)
-    ui.set(Z.V_RemoveFog, Z.SV_RemoveFog)                                                                     ui.set(Z.V_Ammobox, Z.SV_Ammobox)
-    ui.set(Z.V_RemoveSkybox, Z.SV_RemoveSkybox)                                                               ui.set(Z.V_Armor, Z.SV_Armor)
-    ui.set(Z.V_VisualRecoilAdjustment, Z.SV_VisualRecoilAdjustment)                                           ui.set(Z.V_ParachutePack, Z.SV_ParachutePack)
-    ui.set(Z.V_TransparentWalls, Z.SV_TransparentWalls)                                                       ui.set(Z.V_Briefcase, Z.SV_Briefcase)
-    ui.set(Z.V_TransparentProps, Z.SV_TransparentProps)                                                       ui.set(Z.V_TabletUpgradeZone, Z.SV_TabletUpgradeZone)
-    ui.set(Z.V_BrightnessAdjustment, Z.SV_BrightnessAdjustment)                                               ui.set(Z.V_TabletUpgradeDrone, Z.SV_TabletUpgradeDrone)
-    ui.set(Z.V_RemoveScope, Z.SV_RemoveScope)                                                                 ui.set(Z.V_CashStack, Z.SV_CashStack)
-    ui.set(Z.V_InstantScope, Z.SV_InstantScope)                                                               ui.set(Z.V_Props, Z.SV_Props)
-    ui.set(Z.V_DisablePostProcessing, Z.SV_DisablePostProcessing)                                             ui.set(Size, Z.SV_Size)
-    ui.set(Z.V_ForceThirdPersonAlive, Z.SV_ForceThirdPersonAlive)                                             ui.set(Cham1, Z.SV_Cham1)
-    ui.set(Z.V_ForceThirdPersonDead, Z.SV_ForceThirdPersonDead)                                               ui.set(Cham2, Z.SV_Cham2)
-    ui.set(Z.V_DisableTeammates, Z.SV_DisableTeammates)                                                       ui.set(Cham3, Z.SV_Cham3)
-    ui.set(Z.V_BulletTracers, Z.SV_BulletTracers)                                                             ui.set(Cham4, Z.SV_Cham4)
-    ui.set(Z.V_BulletImpacts, Z.SV_BulletImpacts)                                                             ui.set(Cham5, Z.SV_Cham5)
-    ui.set(Duration, Z.SV_Duration)                                                                           ui.set(Pos, Z.SV_Pos)
-    
-                                             ui.set(Color1,  Z.R1,Z.B1,Z.G1,Z.A1)     ui.set(Color2,   Z.R2,Z.B2,Z.G2,Z.A2)     ui.set(Color3,  Z.R3,Z.B3,Z.G3,Z.A3)     ui.set(Color4, Z.R4,Z.B4,Z.G4,Z.A4)   
-    ui.set(Color5,  Z.R5,Z.B5,Z.G5,Z.A5)     ui.set(Color6,  Z.R6,Z.B6,Z.G6,Z.A6)     ui.set(Color7,   Z.R7,Z.B7,Z.G7,Z.A7)     ui.set(Color8,  Z.R8,Z.B8,Z.G8,Z.A8)     ui.set(Color9, Z.R9,Z.B9,Z.G9,Z.A9)   
-    ui.set(Color10, Z.R10,Z.B10,Z.G10,Z.A10) ui.set(Color11, Z.R11,Z.B11,Z.G11,Z.A11) ui.set(Color12,  Z.R12,Z.B12,Z.G12,Z.A12) ui.set(Color13, Z.R13,Z.B13,Z.G13,Z.A13) ui.set(Color14, Z.R14,Z.B14,Z.G14,Z.A14)
-    ui.set(Color15, Z.R15,Z.B15,Z.G15,Z.A15) ui.set(Color16, Z.R16,Z.B16,Z.G16,Z.A16) ui.set(Color17,  Z.R17,Z.B17,Z.G17,Z.A17) ui.set(Color18, Z.R18,Z.B18,Z.G18,Z.A18) ui.set(Color19, Z.R19,Z.B19,Z.G19,Z.A19)
-    ui.set(Color20, Z.R20,Z.B20,Z.G20,Z.A20) ui.set(Color21, Z.R21,Z.B21,Z.G21,Z.A21) ui.set(Color22,  Z.R22,Z.B22,Z.G22,Z.A22) ui.set(Color23, Z.R23,Z.B23,Z.G23,Z.A23) ui.set(Color24, Z.R24,Z.B24,Z.G24,Z.A24)
-    ui.set(Color25, Z.R25,Z.B25,Z.G25,Z.A25) ui.set(Color26, Z.R26,Z.B26,Z.G26,Z.A26) ui.set(Color27,  Z.R27,Z.B27,Z.G27,Z.A27) ui.set(Color28, Z.R28,Z.B28,Z.G28,Z.A28) ui.set(Color29, Z.R29,Z.B29,Z.G29,Z.A29)
-    ui.set(Color30, Z.R30,Z.B30,Z.G30,Z.A30) ui.set(Color31, Z.R31,Z.B31,Z.G31,Z.A31) ui.set(Color32,  Z.R32,Z.B32,Z.G32,Z.A32) ui.set(Color33, Z.R33,Z.B33,Z.G33,Z.A33) ui.set(Color34, Z.R34,Z.B34,Z.G34,Z.A34)
-    ui.set(Color35, Z.R35,Z.B35,Z.G35,Z.A35) ui.set(Color36, Z.R36,Z.B36,Z.G36,Z.A36) ui.set(Color37,  Z.R37,Z.B37,Z.G37,Z.A37) ui.set(Color38, Z.R38,Z.B38,Z.G38,Z.A38) ui.set(Color39, Z.R39,Z.B39,Z.G39,Z.A39)
-    ui.set(Color40, Z.R40,Z.B40,Z.G40,Z.A40) ui.set(Color41, Z.R41,Z.B41,Z.G41,Z.A41) ui.set(Color42,  Z.R42,Z.B42,Z.G42,Z.A42) ui.set(Color43, Z.R43,Z.B43,Z.G43,Z.A43) ui.set(Color44, Z.R44,Z.B44,Z.G44,Z.A44)
-    ui.set(Color45, Z.R45,Z.B45,Z.G45,Z.A45) ui.set(Color46, Z.R46,Z.B46,Z.G46,Z.A46) ui.set(Color47,  Z.R47,Z.B47,Z.G47,Z.A47) ui.set(Color48, Z.R48,Z.B48,Z.G48,Z.A48) ui.set(Color49, Z.R49,Z.B49,Z.G49,Z.A49)
+    for k, v in pairs(RV) do
+        SV[k] = ui_get(v)
+    end
+    for k, v in pairs(RC) do
+        SC[k] = {ui_get(v)}
+    end
+    Done(1, "Visuals")
 end
 
 local function CopyMisc()
-    Z.SM_OverrideFov                        = ui.get(Z.M_OverrideFov)                                         Z.SM_AutomaticWeapons                  = ui.get(Z.M_AutomaticWeapons)
-    Z.SM_BunnyHop                           = ui.get(Z.M_BunnyHop)                                            Z.SM_JumpAtEdge                        = ui.get(Z.M_JumpAtEdge)
-    Z.SM_AirStrafe                          = ui.get(Z.M_AirStrafe)                                           Z.SM_RevealCompetitveRanks             = ui.get(Z.M_RevealCompetitiveRanks)
-    Z.SM_AirStrafeDirection                 = ui.get(Z.M_AirStrafeDirection)                                  Z.SM_AutoAcceptMatchmaking             = ui.get(Z.M_AutoAcceptMatchmaking)
-    Z.SM_AirStrafeSmoothing                 = ui.get(Z.M_AirStrafeSmoothing)                                  Z.SM_AutomaticGrenadeRelease           = ui.get(Z.M_AutomaticGrenadeRelease)
-    Z.SM_Zhop                               = ui.get(Z.M_Zhop)                                                Z.SM_PingSpike                         = ui.get(Z.M_PingSpike)
-    Z.SM_PreSpeed                           = ui.get(Z.M_PreSpeed)                                            Z.SM_FastWalk                          = ui.get(Z.M_FastWalk)
-    Z.SM_AirDuck                            = ui.get(Z.M_AirDuck)                                             Z.SM_PersistentKillFeed                = ui.get(Z.M_PersistentKillFeed)
-    Z.SM_KnifeBot                           = ui.get(Z.M_KnifeBot)                                            Z.SM_AntiUntrusted                     = ui.get(Z.M_AntiUntrusted)
-    Z.SM_ZeusBot                            = ui.get(Z.M_ZeusBot)                                             Z.SM_HideFromObs                       = ui.get(Z.M_HideFromObs)
-    Z.SM_BlockBot                           = ui.get(Z.M_BlockBot)                                            Z.SM_LowFpsWarning                     = ui.get(Z.M_LowFpsWarning)
-    Z.SM_LockMenuLayout                     = ui.get(Z.M_LockMenuLayout)                                      Z.SM_KnifeMode                         = ui.get(KnifeMode)
-    Z.SM_Zy                                 = ui.get(Zy)                                                      Z.SM_Zx                                = ui.get(Zx)
-    Z.SM_ADelay                             = ui.get(ADelay)                                                  Z.SM_PingVal                           = ui.get(PingVal)
-    Z.SM_ClanTagSpammer                     = ui.get(Z.M_ClanTagSpammer)                                      Z.SM_LogDamageDealt                    = ui.get(Z.M_LogDamageDealt)
-    Z.SM_LogPurchases                       = ui.get(Z.M_LogPurchases)                                        Z.SM_RevealOverwatchPlayers            = ui.get(Z.M_RevealOverwatchPlayers)
-    Z.SM_EasyStrafe                         = ui.get(Z.M_EasyStrafe)                                          Z.SM_InfiniteDuck                      = ui.get(Z.M_InfiniteDuck)
-    Z.SM_StandaloneQuickStop                = ui.get(Z.M_StandaloneQuickStop)                                 Z.SM_OverrideZoomFov                   = ui.get(Z.M_OverrideZoomFov)
+    for k, v in pairs(RM) do
+        SM[k] = ui_get(v)
+    end
+    Done(1, "Misc")
+end
+
+local function CopySkins()
+    if globals.mapname() == nil then client.color_log(0, 191, 230, 'Before trying to copy Skins tab, go into a local game and set "sv_cheats" to 1.') return end
+    if client.get_cvar("sv_cheats") ~= "1" then client.color_log(0, 191, 230, 'Before trying to copy Skins tab, set "sv_cheats" to 1.') return end
+    client.exec("mp_restartgame 1; mp_roundtime 60; mp_roundtime_defuse 60; mp_roundtime_hostage 60; bot_kick; mp_buytime 0")
+    SS[OverrideGloves] = ui_get(OverrideGloves)
+    SS[OverrideKnife]  = ui_get(OverrideKnife)
+    SS[GType]          = ui_get(GType)
+    SS[GSkin]          = ui_get(GSkin)
+    SS[KType]          = ui_get(KType)
+    client.delay_call(3, function()
+        local autistDelay = 0.2
+        client.exec("ent_fire weapon_* kill")
+        for _, wep in pairs(Weapons) do
+            client.delay_call(autistDelay ,GiveWeapon, wep)
+            client.delay_call(autistDelay+0.1 ,function()
+                for k, v in pairs(RS) do
+                    SS[wep .. k] = ui_get(v)
+                end
+                client.exec("ent_fire weapon_* kill")
+            end)
+            autistDelay = autistDelay + 0.2
+        end
+    end)
+    client.delay_call(11 ,Done, 1, "Skins")
+end
+
+local function PasteRage()
+    Retard(Copied1, "Rage") if isRetard == true then return end
+    for k, v in pairs(RR) do
+        ui_set(v, SR[k])
+    end
+    Done(2, "Rage")
+end
+
+local function PasteAA()
+    Retard(Copied2, "Anti-Aim") if isRetard == true then return end
+    for k, v in pairs(RA) do
+        ui_set(v, SA[k])
+    end
+    Done(2, "Anti-Aim")
+end
+
+local function PasteLegit()
+    Retard(Copied3, "Legit") if isRetard == true then return end
+    for _, t in pairs(LegitTab) do
+        ui_set(weapon_type, t)
+        for k, v in pairs(RL) do
+            ui_set(v, SL[t .. k])
+        end
+    end
+    Done(2, "Legit")
+end
+
+local function PasteVisuals()
+    Retard(Copied4, "Visuals") if isRetard == true then return end
+    for k, v in pairs(RV) do
+        ui_set(v, SV[k])
+    end
+    for k, v in pairs(RC) do
+        ui_set(v, SC[k][1], SC[k][2], SC[k][3], SC[k][4])
+    end
+    Done(2, "Visuals")
 end
 
 local function PasteMisc()
-    ui.set(Z.M_OverrideFov, Z.SM_OverrideFov)                                                                 ui.set(Z.M_AutomaticWeapons, Z.SM_AutomaticWeapons)
-    ui.set(Z.M_BunnyHop, Z.SM_BunnyHop)                                                                       ui.set(Z.M_JumpAtEdge, Z.SM_JumpAtEdge)
-    ui.set(Z.M_AirStrafe, Z.SM_AirStrafe)                                                                     ui.set(Z.M_RevealCompetitiveRanks, Z.SM_RevealCompetitveRanks)
-    ui.set(Z.M_AirStrafeDirection, Z.SM_AirStrafeDirection)                                                   ui.set(Z.M_AutoAcceptMatchmaking, Z.SM_AutoAcceptMatchmaking)   
-    ui.set(Z.M_AirStrafeSmoothing, Z.SM_AirStrafeSmoothing)                                                   ui.set(Z.M_AutomaticGrenadeRelease, Z.SM_AutomaticGrenadeRelease)
-    ui.set(Z.M_Zhop, Z.SM_Zhop)                                                                               ui.set(Z.M_PingSpike, Z.SM_PingSpike)     
-    ui.set(Z.M_PreSpeed, Z.SM_PreSpeed)                                                                       ui.set(Z.M_FastWalk, Z.SM_FastWalk)
-    ui.set(Z.M_AirDuck, Z.SM_AirDuck)                                                                         ui.set(Z.M_PersistentKillFeed, Z.SM_PersistentKillFeed)
-    ui.set(Z.M_KnifeBot, Z.SM_KnifeBot)                                                                       ui.set(Z.M_AntiUntrusted, Z.SM_AntiUntrusted)
-    ui.set(Z.M_ZeusBot, Z.SM_ZeusBot)                                                                         ui.set(Z.M_HideFromObs, Z.SM_HideFromObs)
-    ui.set(Z.M_BlockBot, Z.SM_BlockBot)                                                                       ui.set(Z.M_LowFpsWarning, Z.SM_LowFpsWarning)
-    ui.set(Z.M_LockMenuLayout, Z.SM_LockMenuLayout)                                                           ui.set(KnifeMode, Z.SM_KnifeMode)         
-    ui.set(Zy, Z.SM_Zy)                                                                                       ui.set(Zx, Z.SM_Zx)
-    ui.set(ADelay, Z.SM_ADelay)                                                                               ui.set(PingVal, Z.SM_PingVal)       
-    ui.set(Z.M_ClanTagSpammer, Z.SM_ClanTagSpammer)                                                           ui.set(Z.M_LogDamageDealt, Z.SM_LogDamageDealt)
-    ui.set(Z.M_LogPurchases, Z.SM_LogPurchases)                                                               ui.set(Z.M_RevealOverwatchPlayers, Z.SM_RevealOverwatchPlayers)
-    ui.set(Z.M_EasyStrafe, Z.SM_EasyStrafe)                                                                   ui.set(Z.M_InfiniteDuck, Z.SM_InfiniteDuck)
-    ui.set(Z.M_StandaloneQuickStop, Z.SM_StandaloneQuickStop)                                                 ui.set(Z.M_OverrideZoomFov , Z.SM_OverrideZoomFov )                                    
+    Retard(Copied5, "Misc") if isRetard == true then return end
+    for k, v in pairs(RM) do
+        ui_set(v, SM[k])
+    end
+    Done(2, "Misc")
+end
+
+local function PasteSkins()
+    Retard(Copied6, "Skins") if isRetard == true then return end
+    if globals.mapname() == nil then client.color_log(0, 191, 230, 'Before trying to paste Skins tab, go into a local game and set "sv_cheats" to 1.') return end
+    if client.get_cvar("sv_cheats") ~= "1" then client.color_log(0, 191, 230, 'Before trying to paste Skins tab, set "sv_cheats" to 1.') return end
+    client.exec("mp_restartgame 1; mp_roundtime 60; mp_roundtime_defuse 60; mp_roundtime_hostage 60; bot_kick; mp_buytime 0")
+    ui_set(OverrideGloves, SS[OverrideGloves])
+    ui_set(OverrideKnife, SS[OverrideKnife])
+    ui_set(GType, SS[GType])
+    ui_set(GSkin, SS[GSkin])
+    ui_set(KType, SS[KType])
+    client.delay_call(3, function()
+        local autistDelay = 0.2
+        client.exec("ent_fire weapon_* kill")
+        for _, wep in pairs(Weapons) do
+            client.delay_call(autistDelay ,GiveWeapon, wep)
+            client.delay_call(autistDelay+0.1 ,function()
+                for k, v in pairs(RS) do
+                    ui_set(v, SS[wep .. k])
+                end
+                client.exec("ent_fire weapon_* kill")
+            end)
+            autistDelay = autistDelay + 0.2
+        end
+    end)
+    client.delay_call(11 ,function()
+        Done(2, "Skins")
+        client.exec("mp_restartgame 1")
+    end)
 end
 
 local function Copy()
-    local SelectedTabs = ui.get(MultiSelect)
+    local SelectedTabs = ui_get(MultiSelect)
     for i=1, #SelectedTabs do
-    if SelectedTabs[i] == "Rage"     then CopyRage()    print("Copied Rage Tab.")     end
-    if SelectedTabs[i] == "Anti-Aim" then CopyAA()      print("Copied Anti-Aim Tab.") end
-    if SelectedTabs[i] == "Legit"    then CopyLegit()   print("Copied Legit Tab.")    end
-    if SelectedTabs[i] == "Visuals"  then CopyVisuals() print("Copied Visuals Tab.")  end
-    if SelectedTabs[i] == "Misc"     then CopyMisc()    print("Copied Misc Tab.")     end
+        if SelectedTabs[i] == "Rage"     then CopyRage()    Copied1 = true end
+        if SelectedTabs[i] == "Anti-Aim" then CopyAA()      Copied2 = true end
+        if SelectedTabs[i] == "Legit"    then CopyLegit()   Copied3 = true end
+        if SelectedTabs[i] == "Visuals"  then CopyVisuals() Copied4 = true end
+        if SelectedTabs[i] == "Misc"     then CopyMisc()    Copied5 = true end
+        if SelectedTabs[i] == "Skins"    then CopySkins()   Copied6 = true end
     end
 end
-        
+
 local function Paste()
-    local SelectedTabs = ui.get(MultiSelect)
+    local SelectedTabs = ui_get(MultiSelect)
     for i=1, #SelectedTabs do
-    if SelectedTabs[i] == "Rage"     then PasteRage()    print("Pasted Rage Tab.")     end
-    if SelectedTabs[i] == "Anti-Aim" then PasteAA()      print("Pasted Anti-Aim Tab.") end
-    if SelectedTabs[i] == "Legit"    then PasteLegit()   print("Pasted Legit Tab.")    end
-    if SelectedTabs[i] == "Visuals"  then PasteVisuals() print("Pasted Visuals Tab.")  end
-    if SelectedTabs[i] == "Misc"     then PasteMisc()    print("Pasted Misc Tab.")     end
+        if SelectedTabs[i] == "Rage"     then PasteRage()    end
+        if SelectedTabs[i] == "Anti-Aim" then PasteAA()      end
+        if SelectedTabs[i] == "Legit"    then PasteLegit()   end
+        if SelectedTabs[i] == "Visuals"  then PasteVisuals() end
+        if SelectedTabs[i] == "Misc"     then PasteMisc()    end
+        if SelectedTabs[i] == "Skins"    then PasteSkins()   end
     end
 end
 
@@ -471,16 +306,16 @@ local Button1  = ui.new_button("LUA", "A", "Copy Selected Tabs", Copy)
 local Button2  = ui.new_button("LUA", "A", "Paste Selected Tabs", Paste)
 
 local function HandleMenu()
-    if ui.get(Enabled) then
-        ui.set_visible(MultiSelect, true)
-        ui.set_visible(Button1, true)
-        ui.set_visible(Button2, true)
+    if ui_get(Enabled) then
+        ui_set_visible(MultiSelect, true)
+        ui_set_visible(Button1, true)
+        ui_set_visible(Button2, true)
     else
-        ui.set_visible(MultiSelect, false)
-        ui.set (MultiSelect, "-")
-        ui.set_visible(Button1, false)
-        ui.set_visible(Button2, false)
-        end
+        ui_set_visible(MultiSelect, false)
+        ui_set_visible(Button1, false)
+        ui_set_visible(Button2, false)
+        ui_set(MultiSelect, "-")
     end
+end
 HandleMenu()
 ui.set_callback(Enabled, HandleMenu)
