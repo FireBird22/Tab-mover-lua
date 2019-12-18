@@ -111,8 +111,8 @@ RM.ClanTagSpammer                         = ui_reference("MISC", "Miscellaneous"
 RM.LogDamageDealt                         = ui_reference("MISC", "Miscellaneous", "Log damage dealt")             RM.LowFpsWarning                          = ui_reference("MISC", "Settings", "Low FPS warning")
 --------------------------------------------------------------------------------------------------------------SKINS-REF----------------------------------------------------------------------------------------------------
 RS.Quality                                = ui_reference("SKINS", "Weapon skin", "Quality")                       RS.Seed                                   = ui_reference("SKINS", "Weapon skin", "Seed")
-RS.Enabled                                = ui_reference("SKINS", "Weapon skin", "Enabled")                       RS.FilterByWeapon                         = ui_reference("SKINS", "Weapon skin", "Filter by weapon")
-RS.StatTrak                               = ui_reference("SKINS", "Weapon skin", "StatTrak")                      RS.List                                   = ui_reference("Skins", "Weapon Skin", "Skin")
+RS.Enabled                                = ui_reference("SKINS", "Weapon skin", "Enabled")                       RS.List                                   = ui_reference("Skins", "Weapon Skin", "Skin")
+RS.StatTrak                               = ui_reference("SKINS", "Weapon skin", "StatTrak")                      RS.FilterByWeapon                         = ui_reference("SKINS", "Weapon skin", "Filter by weapon")
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 local Enabled     = ui.new_checkbox   ("LUA", "A", "Enable Tab Mover")
 local MultiSelect = ui.new_multiselect("LUA", "A", "Selected Tabs", "Rage", "Anti-Aim", "Legit", "Visuals", "Misc", "Skins")
