@@ -1,5 +1,5 @@
--- Credits to, w7rus, aviarita, duk
-local zz, ui_reference ,ui_get, ui_set, ui_set_visible = nil, ui.reference, ui.get, ui.set, ui.set_visible
+-- Credits to w7rus, aviarita, duk, Jon.
+local zz, ui_reference ,ui_get, ui_set, ui_set_visible, color_log, exec = nil, ui.reference, ui.get, ui.set, ui.set_visible, client.color_log, client.exec
 local RR, RA, RL, RV, RC, RM, RS = {}, {}, {}, {}, {}, {}, {} -- References
 local SR, SA, SL, SV, SC, SM, SS = {}, {}, {}, {}, {}, {}, {} -- Stored Values
 local Copied1, Copied2, Copied3, Copied4, Copied5, Copied6, isRetard = false, false, false, false, false, false, false -- Trying to prevent Script/Cfg from breaking if the user has <2 iq.
@@ -117,10 +117,8 @@ RS.StatTrak                               = ui_reference("SKINS", "Weapon skin",
 local Enabled     = ui.new_checkbox   ("LUA", "A", "Enable Tab Mover")
 local MultiSelect = ui.new_multiselect("LUA", "A", "Selected Tabs", "Rage", "Anti-Aim", "Legit", "Visuals", "Misc", "Skins")
 
-local function Retard(huh, tabName)
-    if huh ~= true then client.color_log(255, 30, 0, "Copy the " .. tabName .. " tab, before trying to paste it. You dumb fuck.") isRetard = true 
-        else isRetard = false
-    end
+local function Retard(Copied, TabName)
+    if Copied ~= true then color_log(255, 30, 0, "Copy the " .. TabName .. " tab, before trying to paste it. You dumb fuck.") return true end
 end
 
 local function Done(type, tabName)
@@ -128,11 +126,17 @@ local theThingy = nil
     if type == 1 then theThingy = "Copied " 
     elseif type == 2 then theThingy = "Pasted " 
     end
-    client.color_log(4, 225, 0, theThingy .. tabName .. " Tab.")
+    color_log(4, 225, 0, theThingy .. tabName .. " Tab.")
+end
+
+local function SkinCheck(Type)
+    if globals.mapname() == nil then color_log(0, 191, 230, 'Before trying to copy Skins tab, go into a local game and set "sv_cheats" to 1.') return end
+    if client.get_cvar("sv_cheats") ~= "1" then color_log(0, 191, 230, 'Before trying to '.. Type ..' Skins tab, set "sv_cheats" to 1.') return end
+    exec("jointeam 2; mp_restartgame 1; mp_warmup_end; mp_roundtime 60; mp_roundtime_defuse 60; mp_roundtime_hostage 60; bot_kick; mp_buytime 0; mp_humanteam any; mp_respawn_on_death_ct 1; mp_respawn_on_death_t 1") return true
 end
 
 local function GiveWeapon(weapon)
-    client.exec("give weapon_"..weapon)
+    exec("give weapon_"..weapon)
 end
 
 local function CopyRage()
@@ -177,33 +181,43 @@ local function CopyMisc()
 end
 
 local function CopySkins()
-    if globals.mapname() == nil then client.color_log(0, 191, 230, 'Before trying to copy Skins tab, go into a local game and set "sv_cheats" to 1.') return end
-    if client.get_cvar("sv_cheats") ~= "1" then client.color_log(0, 191, 230, 'Before trying to copy Skins tab, set "sv_cheats" to 1.') return end
-    client.exec("mp_restartgame 1; mp_roundtime 60; mp_roundtime_defuse 60; mp_roundtime_hostage 60; bot_kick; mp_buytime 0")
-    SS[OverrideGloves] = ui_get(OverrideGloves)
-    SS[OverrideKnife]  = ui_get(OverrideKnife)
-    SS[GType]          = ui_get(GType)
-    SS[GSkin]          = ui_get(GSkin)
-    SS[KType]          = ui_get(KType)
-    client.delay_call(3, function()
-        local autistDelay = 0.2
-        client.exec("ent_fire weapon_* kill")
+    if not SkinCheck("Copy") then return end
+    local autistDelay = 0.2
+    client.delay_call(2, function()
+        SS[OverrideGloves] = ui_get(OverrideGloves)
+        SS[OverrideKnife]  = ui_get(OverrideKnife)
+        SS[GType]          = ui_get(GType)
+        SS[GSkin]          = ui_get(GSkin)
+        SS[KType]          = ui_get(KType)
+        exec("ent_fire weapon_* kill")
+        client.delay_call(autistDelay ,GiveWeapon, "knife")
+    end)
+    client.delay_call(2.5, function()
+        for k, v in pairs(RS) do
+            SS["ALTKNIFE" .. k] = ui_get(v)
+        end
+    end)
+    client.delay_call(3.5, function()
+        exec("jointeam 3; bot_kick; ent_fire weapon_* kill")
         for _, wep in pairs(Weapons) do
             client.delay_call(autistDelay ,GiveWeapon, wep)
             client.delay_call(autistDelay+0.1 ,function()
                 for k, v in pairs(RS) do
                     SS[wep .. k] = ui_get(v)
                 end
-                client.exec("ent_fire weapon_* kill")
+                exec("ent_fire weapon_* kill")
             end)
             autistDelay = autistDelay + 0.2
         end
     end)
-    client.delay_call(11 ,Done, 1, "Skins")
+    client.delay_call(12 ,function()
+        exec("mp_restartgame 1")
+        Done(1, "Skins")
+    end)
 end
 
 local function PasteRage()
-    Retard(Copied1, "Rage") if isRetard == true then return end
+    if Retard(Copied1, "Rage") then return end
     for k, v in pairs(RR) do
         ui_set(v, SR[k])
     end
@@ -211,7 +225,7 @@ local function PasteRage()
 end
 
 local function PasteAA()
-    Retard(Copied2, "Anti-Aim") if isRetard == true then return end
+    if Retard(Copied2, "Anti-Aim") then return end
     for k, v in pairs(RA) do
         ui_set(v, SA[k])
     end
@@ -219,7 +233,7 @@ local function PasteAA()
 end
 
 local function PasteLegit()
-    Retard(Copied3, "Legit") if isRetard == true then return end
+    if Retard(Copied3, "Legit") then return end
     for _, t in pairs(LegitTab) do
         ui_set(weapon_type, t)
         for k, v in pairs(RL) do
@@ -230,7 +244,7 @@ local function PasteLegit()
 end
 
 local function PasteVisuals()
-    Retard(Copied4, "Visuals") if isRetard == true then return end
+    if Retard(Copied4, "Visuals") then return end
     for k, v in pairs(RV) do
         ui_set(v, SV[k])
     end
@@ -241,7 +255,7 @@ local function PasteVisuals()
 end
 
 local function PasteMisc()
-    Retard(Copied5, "Misc") if isRetard == true then return end
+    if Retard(Copied5, "Misc") then return end
     for k, v in pairs(RM) do
         ui_set(v, SM[k])
     end
@@ -249,32 +263,39 @@ local function PasteMisc()
 end
 
 local function PasteSkins()
-    Retard(Copied6, "Skins") if isRetard == true then return end
-    if globals.mapname() == nil then client.color_log(0, 191, 230, 'Before trying to paste Skins tab, go into a local game and set "sv_cheats" to 1.') return end
-    if client.get_cvar("sv_cheats") ~= "1" then client.color_log(0, 191, 230, 'Before trying to paste Skins tab, set "sv_cheats" to 1.') return end
-    client.exec("mp_restartgame 1; mp_roundtime 60; mp_roundtime_defuse 60; mp_roundtime_hostage 60; bot_kick; mp_buytime 0")
-    ui_set(OverrideGloves, SS[OverrideGloves])
-    ui_set(OverrideKnife, SS[OverrideKnife])
-    ui_set(GType, SS[GType])
-    ui_set(GSkin, SS[GSkin])
-    ui_set(KType, SS[KType])
-    client.delay_call(3, function()
-        local autistDelay = 0.2
-        client.exec("ent_fire weapon_* kill")
+    if Retard(Copied6, "Skins") then return end
+    if not SkinCheck("Paste") then return end
+    local autistDelay = 0.2
+    client.delay_call(2, function()
+        ui_set(OverrideGloves, SS[OverrideGloves])
+        ui_set(OverrideKnife, SS[OverrideKnife])
+        ui_set(GType, SS[GType])
+        ui_set(GSkin, SS[GSkin])
+        ui_set(KType, SS[KType])
+        exec("ent_fire weapon_* kill")
+        client.delay_call(autistDelay ,GiveWeapon, "knife")
+    end)
+    client.delay_call(2.5, function()
+        for k, v in pairs(RS) do
+            ui_set(v, SS["ALTKNIFE" .. k])
+        end
+    end)
+    client.delay_call(3.5, function()
+        exec("jointeam 3; bot_kick; ent_fire weapon_* kill")
         for _, wep in pairs(Weapons) do
             client.delay_call(autistDelay ,GiveWeapon, wep)
             client.delay_call(autistDelay+0.1 ,function()
                 for k, v in pairs(RS) do
                     ui_set(v, SS[wep .. k])
                 end
-                client.exec("ent_fire weapon_* kill")
+                exec("ent_fire weapon_* kill")
             end)
             autistDelay = autistDelay + 0.2
         end
     end)
-    client.delay_call(11 ,function()
+    client.delay_call(12 ,function()
         Done(2, "Skins")
-        client.exec("mp_restartgame 1")
+        exec("mp_restartgame 1")
     end)
 end
 
